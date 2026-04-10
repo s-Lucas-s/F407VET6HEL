@@ -72,7 +72,15 @@ static void MX_NVIC_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    // 判断定时器
+    if (htim == &htim2) //
+    {
 
+        Key_LoopDetect();
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -110,11 +118,12 @@ int main(void)
   MX_TIM3_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+  HAL_TIM_Base_Start_IT(&htim2);
   PID_Init();
   board_init();
   OLED_Init();
   Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
-  OLED_ShowString(0, 0, "Holle!", OLED_8X16);
+  OLED_ShowString(0, 0, "Hello!", OLED_8X16);
   OLED_Update();
   HAL_Delay(500);
   OLED_Clear();
@@ -126,7 +135,6 @@ int main(void)
   {
     uint8_t keyValue = 0;
 
-    Key_LoopDetect();
     keyValue = Key_GetCode();
 
     if (keyValue == 1)
