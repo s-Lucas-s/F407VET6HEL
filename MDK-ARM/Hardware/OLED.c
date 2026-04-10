@@ -137,18 +137,18 @@ void OLED_GPIO_Init(void)
 		for (j = 0; j < 1000; j ++);
 	}
 	
-	/*将SCL和SDA引脚初始化为开漏模式*/
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+	// /*将SCL和SDA引脚初始化为开漏模式*/
+    // __HAL_RCC_GPIOB_CLK_ENABLE();
 
-    GPIO_InitTypeDef GPIO_InitStructure;
-    GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_OD;
-    GPIO_InitStructure.Pull = GPIO_NOPULL;
-    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStructure.Pin = GPIO_PIN_8;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
+    // GPIO_InitTypeDef GPIO_InitStructure;
+    // GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_OD;
+    // GPIO_InitStructure.Pull = GPIO_NOPULL;
+    // GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
+    // GPIO_InitStructure.Pin = GPIO_PIN_8;
+    // HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_InitStructure.Pin = GPIO_PIN_9;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
+    // GPIO_InitStructure.Pin = GPIO_PIN_9;
+    // HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
 
     /*释放SCL和SDA*/
 	OLED_W_SCL(1);
