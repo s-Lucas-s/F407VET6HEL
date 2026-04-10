@@ -1,0 +1,29 @@
+# dot files
+/.settings
+/.agents
+/.vscode
+/.github
+/bootLoader
+/.eide/log
+/.eide.usr.ctx.json
+
+# project out
+/build
+/bin
+/obj
+/out
+
+
+#MDK
+/MDK
+
+# eide template
+*.ept
+*.eide-template
+
+#clangd
+.clang-format
+.clangd
+
+#STM32CubeIDE
+.project
