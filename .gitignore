@@ -2,7 +2,6 @@
 /.settings
 /.agents
 /.vscode
-/.github
 /bootLoader
 /.eide/log
 /.eide.usr.ctx.json
@@ -28,4 +27,3 @@
 
 #STM32CubeIDE
 .project
-GBK2UTF8-result-63840.md
