@@ -2,7 +2,7 @@ version: "4.1"
 name: F407VET6HEL
 type: ARM
 deviceName: STM32F407VETx
-packDir: .pack/Keil/STM32F4xx_DFP.2.17.1
+packDir: .pack/Keil/STM32F4xx_DFP.2.14.0
 srcDirs: []
 virtualFolder:
   name: <virtual_root>
@@ -110,7 +110,8 @@ targets:
         - MDK-ARM/RTE/_F407VET6HEL
       libList: []
     excludeList: []
-    settings: {}
+    settings:
+      debugger: cortex-debug
     toolchain: AC6
     toolchainConfigMap:
       AC6:
@@ -226,5 +227,15 @@ targets:
         baseAddr: "0x08000000"
         bin: ""
         interface: stlink
-        target: stm32f1x
+        target: stm32f4x
+      STLink:
+        address: "0x8000000"
+        bin: ""
+        elFile: None
+        optionBytes: .eide/f407vet6hel.st.option.bytes.ini
+        otherCmds: ""
+        proType: SWD
+        resetMode: default
+        runAfterProgram: true
+        speed: 4000
     uploader: OpenOCD

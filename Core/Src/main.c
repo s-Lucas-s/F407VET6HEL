@@ -116,6 +116,8 @@ int main(void)
   Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
   OLED_ShowString(0, 0, "Holle!", OLED_8X16);
   OLED_Update();
+  HAL_Delay(500);
+  OLED_Clear();
   /* USER CODE END 2 */
 
   /* Infinite loop */

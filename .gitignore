@@ -6,6 +6,7 @@
 /bootLoader
 /.eide/log
 /.eide.usr.ctx.json
+/.pack
 
 # project out
 /build
