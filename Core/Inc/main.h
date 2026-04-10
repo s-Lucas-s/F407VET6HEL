@@ -61,10 +61,6 @@ void Error_Handler(void);
 #define KEY1_GPIO_Port GPIOB
 #define KEY2_Pin GPIO_PIN_1
 #define KEY2_GPIO_Port GPIOB
-#define OLED_SCL_Pin GPIO_PIN_8
-#define OLED_SCL_GPIO_Port GPIOB
-#define OLED_SDA_Pin GPIO_PIN_9
-#define OLED_SDA_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
