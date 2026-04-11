@@ -8,7 +8,6 @@
 #include "OLED.h"
 #include "PID.h"
 #include "Timer.h"
-#include "board.h"
 #include "usart.h"
 #include "Serial.h"
 #include "Serial1.h"
@@ -25,7 +24,6 @@ extern bool Power_on_flag;
 #define Max_x_angle 180
 
 /* ————————————函数———————————— */
-// ！！！删除 nvic_init 函数，完全不需要
 float Check_angle(uint8_t addr);
 void check_Bootloader(uint8_t data);
 

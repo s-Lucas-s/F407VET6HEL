@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -22,8 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stm32F4xx_hal.h"
-#include <stdbool.h>
 #include "sys.h"
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,6 +50,7 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
+UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
 bool Stop_flag = 0;
@@ -67,21 +68,14 @@ static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_USART6_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-    // 判断定时器
-    if (htim == &htim2) //
-    {
 
-        Key_LoopDetect();
-    }
-}
 /* USER CODE END 0 */
 
 /**
@@ -101,6 +95,8 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+    SCB->VTOR = FLASH_BASE | NVIC_VECTTAB_OFFSET;
+    __enable_irq();
 
   /* USER CODE END Init */
 
@@ -119,10 +115,14 @@ int main(void)
   MX_TIM3_Init();
   MX_USART3_UART_Init();
   MX_I2C1_Init();
+  MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
+  HAL_TIM_Base_Start_IT(&htim3);
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+  __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+  __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
   PID_Init();
-  board_init();
   OLED_Init();
   Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
   OLED_ShowString(0, 0, "Hello!", OLED_8X16);
@@ -133,11 +133,13 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+    while (1)
+    {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+    
     uint8_t keyValue = 0;
 
     keyValue = Key_GetCode();
@@ -149,20 +151,20 @@ int main(void)
         {
             Questionx = 1;
         }
-    }
-    else if (keyValue == 2)
-    {
-        Stop_flag = !Stop_flag;
-    }
+        }
+        else if (keyValue == 2)
+        {
+            Stop_flag = !Stop_flag;
+        }
 
-    OLED_ShowString(0, 0, "Mode:", OLED_8X16);
-    OLED_ShowNum(48, 0, Questionx, 1, OLED_8X16);
-    OLED_ShowString(0, 16, "Stop:", OLED_8X16);
-    OLED_ShowNum(48, 16, Stop_flag, 1, OLED_8X16);
-    OLED_Update();
+        OLED_ShowString(0, 0, "Mode:", OLED_8X16);
+        OLED_ShowNum(48, 0, Questionx, 1, OLED_8X16);
+        OLED_ShowString(0, 16, "Stop:", OLED_8X16);
+        OLED_ShowNum(48, 16, Stop_flag, 1, OLED_8X16);
+        OLED_Update();
 
-    HAL_Delay(10);
-  }
+        HAL_Delay(10);
+    }
   /* USER CODE END 3 */
 }
 
@@ -435,6 +437,39 @@ static void MX_USART3_UART_Init(void)
 }
 
 /**
+  * @brief USART6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART6_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART6_Init 0 */
+
+  /* USER CODE END USART6_Init 0 */
+
+  /* USER CODE BEGIN USART6_Init 1 */
+
+  /* USER CODE END USART6_Init 1 */
+  huart6.Instance = USART6;
+  huart6.Init.BaudRate = 115200;
+  huart6.Init.WordLength = UART_WORDLENGTH_8B;
+  huart6.Init.StopBits = UART_STOPBITS_1;
+  huart6.Init.Parity = UART_PARITY_NONE;
+  huart6.Init.Mode = UART_MODE_TX_RX;
+  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART6_Init 2 */
+
+  /* USER CODE END USART6_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -450,6 +485,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pins : KEY1_Pin KEY2_Pin */
   GPIO_InitStruct.Pin = KEY1_Pin|KEY2_Pin;
@@ -466,44 +502,25 @@ static void MX_GPIO_Init(void)
 
 float Check_angle(uint8_t addr)
 {
-  float Check_pos = 0.0f, Check_Motor_Cur_Pos = 0.0f;
+    float Check_pos = 0.0f, Check_Motor_Cur_Pos = 0.0f;
 
-  Emm_V5_Read_Sys_Params(addr, S_CPOS);
-  HAL_Delay(20);
-  if (rxCmd[0] == addr && rxCmd[1] == 0x36 && rxCount == 8)
-  {
-    Check_pos = (uint32_t)(((uint32_t)rxCmd[3] << 24) |
-                           ((uint32_t)rxCmd[4] << 16) |
-                           ((uint32_t)rxCmd[5] << 8) |
-                           ((uint32_t)rxCmd[6] << 0));
-
-    Check_Motor_Cur_Pos = (float)Check_pos * 360.0f / 65536.0f;
-    if (rxCmd[2])
+    Emm_V5_Read_Sys_Params(addr, S_CPOS);
+    HAL_Delay(20);
+    if (rxCmd[0] == addr && rxCmd[1] == 0x36 && rxCount == 8)
     {
-      Check_Motor_Cur_Pos = -Check_Motor_Cur_Pos;
-    }
-  }
-  return Check_Motor_Cur_Pos;
-}
-static uint8_t USART1_ReceiveData = 0;
-static uint8_t USART1_ReceiveDataCount = 0;
-void check_Bootloader(uint8_t data)
-{
-  if (data == 0x7E)
-  {
-    if (++USART1_ReceiveDataCount >= 5)
-    {
-      USART1_ReceiveDataCount = 0;
-      IAP_WriteFlag(IAP_UPGRADE_FLAG);
-      NVIC_SystemReset();
-    }
-  }
-  else
-  {
-    USART1_ReceiveDataCount = 0;
-  }
-}
+        Check_pos = (uint32_t)(((uint32_t)rxCmd[3] << 24) |
+                               ((uint32_t)rxCmd[4] << 16) |
+                               ((uint32_t)rxCmd[5] << 8) |
+                               ((uint32_t)rxCmd[6] << 0));
 
+        Check_Motor_Cur_Pos = (float)Check_pos * 360.0f / 65536.0f;
+        if (rxCmd[2])
+        {
+            Check_Motor_Cur_Pos = -Check_Motor_Cur_Pos;
+        }
+    }
+    return Check_Motor_Cur_Pos;
+}
 /* USER CODE END 4 */
 
 /**
@@ -513,11 +530,11 @@ void check_Bootloader(uint8_t data)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+    /* User can add his own implementation to report the HAL error return state */
+    __disable_irq();
+    while (1)
+    {
+    }
   /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT
@@ -531,8 +548,8 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+    /* User can add his own implementation to report the file name and line number,
+       ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

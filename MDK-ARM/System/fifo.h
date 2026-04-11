@@ -1,7 +1,7 @@
 #ifndef __FIFO_H
 #define __FIFO_H
 
-#include "main.h"    // 替换 stm32f10x.h，适配 F4 HAL 库
+#include "main.h"
 #include <stdbool.h>
 
 #define FIFO_SIZE   128
@@ -12,13 +12,14 @@ typedef struct {
     __IO uint8_t ptrRead;
 } FIFO_t;
 
-extern __IO FIFO_t rxFIFO;
+extern __IO FIFO_t rx1FIFO;
+extern __IO FIFO_t rx6FIFO;
 
 // 函数名统一规范
-void fifo_initQueue(void);
-void fifo_enQueue(uint16_t data);
-uint16_t fifo_deQueue(void);
-bool fifo_isEmpty(void);
-uint16_t fifo_queueLength(void);
+void fifo_initQueue(void);  // 初始化队列
+void fifo_enQueue(UART_HandleTypeDef *huart,uint16_t data);
+uint16_t fifo_deQueue(UART_HandleTypeDef *huart);
+bool fifo_isEmpty(UART_HandleTypeDef *huart);
+uint16_t fifo_queueLength(UART_HandleTypeDef *huart);
 
 #endif

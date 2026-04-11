@@ -55,8 +55,6 @@ virtualFolder:
           folders: []
     - name: Hardware
       files:
-        - path: MDK-ARM/Hardware/board.c
-        - path: MDK-ARM/Hardware/board.h
         - path: MDK-ARM/Hardware/EMM_V5.c
         - path: MDK-ARM/Hardware/EMM_V5.h
         - path: MDK-ARM/Hardware/IAP.c
@@ -205,8 +203,8 @@ targets:
               isChecked: true
               isStartup: true
               mem:
-                size: "0x80000"
-                startAddr: "0x8000000"
+                size: "0x74000"
+                startAddr: "0x800C000"
               tag: IROM
             - id: 2
               isChecked: false

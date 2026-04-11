@@ -6,12 +6,11 @@
 #include "fifo.h"
 
 // 全局变量声明（完全保留）
-extern __IO bool rxFrameFlag;
+extern __IO bool rx1FrameFlag;
+extern __IO bool rx6FrameFlag;
 extern __IO uint8_t rxCmd[FIFO_SIZE];
 extern __IO uint8_t rxCount;
 
-// 函数声明（接口完全不变）
 void usart_SendCmd(uint8_t *cmd, uint8_t len);
-void usart_SendByte(uint16_t data);
-
+void usart_SendByte(UART_HandleTypeDef *huart, uint16_t data);
 #endif
