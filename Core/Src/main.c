@@ -45,8 +45,8 @@
 I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim3;
 
+UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
@@ -56,6 +56,7 @@ UART_HandleTypeDef huart6;
 bool Stop_flag = 0;
 bool Power_on_flag = 0;
 int8_t Questionx = 0;
+GyroData_t s_GyroData = {0};
 
 /* USER CODE END PV */
 
@@ -65,17 +66,17 @@ static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM2_Init(void);
-static void MX_TIM3_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART6_UART_Init(void);
+static void MX_UART4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+ 
 /* USER CODE END 0 */
 
 /**
@@ -112,22 +113,26 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_TIM2_Init();
-  MX_TIM3_Init();
   MX_USART3_UART_Init();
   MX_I2C1_Init();
   MX_USART6_UART_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim2);
-  HAL_TIM_Base_Start_IT(&htim3);
-  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
-  __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
-  __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
-  PID_Init();
   OLED_Init();
-  Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
   OLED_ShowString(0, 0, "Hello!", OLED_8X16);
   OLED_Update();
   HAL_Delay(500);
+
+  HAL_TIM_Base_Start_IT(&htim2);
+  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+  __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
+  __HAL_UART_ENABLE_IT(&huart4, UART_IT_RXNE);
+  __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
+  gyroscope_Init(&s_GyroData);
+  PID_Init();
+  
+
+  Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
   OLED_Clear();
   /* USER CODE END 2 */
 
@@ -139,7 +144,6 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-    
     uint8_t keyValue = 0;
 
     keyValue = Key_GetCode();
@@ -164,6 +168,7 @@ int main(void)
         OLED_Update();
 
         HAL_Delay(10);
+
     }
   /* USER CODE END 3 */
 }
@@ -293,47 +298,35 @@ static void MX_TIM2_Init(void)
 }
 
 /**
-  * @brief TIM3 Initialization Function
+  * @brief UART4 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM3_Init(void)
+static void MX_UART4_Init(void)
 {
 
-  /* USER CODE BEGIN TIM3_Init 0 */
+  /* USER CODE BEGIN UART4_Init 0 */
 
-  /* USER CODE END TIM3_Init 0 */
+  /* USER CODE END UART4_Init 0 */
 
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  /* USER CODE BEGIN UART4_Init 1 */
 
-  /* USER CODE BEGIN TIM3_Init 1 */
-
-  /* USER CODE END TIM3_Init 1 */
-  htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 83;
-  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 999;
-  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  /* USER CODE END UART4_Init 1 */
+  huart4.Instance = UART4;
+  huart4.Init.BaudRate = 115200;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
   {
     Error_Handler();
   }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM3_Init 2 */
+  /* USER CODE BEGIN UART4_Init 2 */
 
-  /* USER CODE END TIM3_Init 2 */
+  /* USER CODE END UART4_Init 2 */
 
 }
 

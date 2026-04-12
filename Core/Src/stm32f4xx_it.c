@@ -20,9 +20,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
 #include "main.h"
-#include "sys.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "sys.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,7 +57,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
+extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
@@ -210,27 +210,27 @@ void SysTick_Handler(void)
 void TIM2_IRQHandler(void)
 {
     /* USER CODE BEGIN TIM2_IRQn 0 */
-    Key_LoopDetect();
+    static uint16_t Key_LoopTime = 0;
+    static uint16_t Attitude_LoopTime = 0;
+    Key_LoopTime++;
+    Attitude_LoopTime++;
+
+    if (Key_LoopTime >= 10) // 100Hz
+    {
+        Key_LoopTime = 0;
+        Key_LoopDetect();
+    }
+
+    if (Attitude_LoopTime >= 20) // 50Hz
+    {
+        Attitude_LoopTime = 0;
+        GetAttitudeData();
+    }
     /* USER CODE END TIM2_IRQn 0 */
     HAL_TIM_IRQHandler(&htim2);
     /* USER CODE BEGIN TIM2_IRQn 1 */
 
     /* USER CODE END TIM2_IRQn 1 */
-}
-
-/**
- * @brief This function handles TIM3 global interrupt.
- */
-void TIM3_IRQHandler(void)
-{
-    /* USER CODE BEGIN TIM3_IRQn 0 */
-    static uint32_t g_timer3_count = 0;
-    g_timer3_count++;
-    /* USER CODE END TIM3_IRQn 0 */
-    HAL_TIM_IRQHandler(&htim3);
-    /* USER CODE BEGIN TIM3_IRQn 1 */
-
-    /* USER CODE END TIM3_IRQn 1 */
 }
 
 /**
@@ -299,7 +299,6 @@ void USART3_IRQHandler(void)
 
     uint8_t ch;
 
-    // 接收中断
     if (__HAL_UART_GET_FLAG(&huart3, UART_FLAG_RXNE) != RESET)
     {
         ch = (uint8_t)(huart3.Instance->DR & 0xFF);
@@ -307,7 +306,6 @@ void USART3_IRQHandler(void)
         __HAL_UART_CLEAR_FLAG(&huart3, UART_FLAG_RXNE);
     }
 
-    // 清除溢出错误（必须加，否则会卡死）
     if (__HAL_UART_GET_FLAG(&huart3, UART_FLAG_ORE) != RESET)
     {
         __HAL_UART_CLEAR_OREFLAG(&huart3);
@@ -317,6 +315,27 @@ void USART3_IRQHandler(void)
     /* USER CODE BEGIN USART3_IRQn 1 */
 
     /* USER CODE END USART3_IRQn 1 */
+}
+
+/**
+ * @brief This function handles UART4 global interrupt.
+ */
+void UART4_IRQHandler(void)
+{
+    /* USER CODE BEGIN UART4_IRQn 0 */
+
+    uint8_t ch;
+
+    if (__HAL_UART_GET_FLAG(&huart4, UART_FLAG_RXNE) != RESET)
+    {
+        ch = (uint8_t)(huart4.Instance->DR & 0xFF);
+        WitSerialDataIn(ch);
+    }
+    /* USER CODE END UART4_IRQn 0 */
+    HAL_UART_IRQHandler(&huart4);
+    /* USER CODE BEGIN UART4_IRQn 1 */
+
+    /* USER CODE END UART4_IRQn 1 */
 }
 
 /**

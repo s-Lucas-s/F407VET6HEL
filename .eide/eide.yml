@@ -75,7 +75,17 @@ virtualFolder:
         - path: MDK-ARM/Hardware/Timer.h
         - path: MDK-ARM/Hardware/usart.c
         - path: MDK-ARM/Hardware/usart.h
-      folders: []
+      folders:
+        - name: wit_c_sdk
+          files:
+            - path: MDK-ARM/Hardware/wit_c_sdk/REG.h
+            - path: MDK-ARM/Hardware/wit_c_sdk/wit_c_sdk.c
+            - path: MDK-ARM/Hardware/wit_c_sdk/wit_c_sdk.h
+            - path: MDK-ARM/Hardware/wit_c_sdk/uart4.c
+            - path: MDK-ARM/Hardware/wit_c_sdk/uart4.h
+            - path: MDK-ARM/Hardware/wit_c_sdk/gyroscope.c
+            - path: MDK-ARM/Hardware/wit_c_sdk/gyroscope.h
+          folders: []
     - name: System
       files:
         - path: MDK-ARM/System/Delay.c
@@ -109,6 +119,7 @@ targets:
         - MDK-ARM/System
         - .cmsis/include
         - MDK-ARM/RTE/_F407VET6HEL
+        - MDK-ARM/Hardware/wit_c_sdk
       libList: []
     excludeList: []
     settings:
