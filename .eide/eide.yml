@@ -75,11 +75,13 @@ virtualFolder:
         - path: MDK-ARM/Hardware/Timer.h
         - path: MDK-ARM/Hardware/usart.c
         - path: MDK-ARM/Hardware/usart.h
+        - path: MDK-ARM/Hardware/JY901.c
+        - path: MDK-ARM/Hardware/JY901.h
+        - path: MDK-ARM/Hardware/MyI2C.c
+        - path: MDK-ARM/Hardware/MyI2C.h
       folders: []
     - name: System
       files:
-        - path: MDK-ARM/System/Delay.c
-        - path: MDK-ARM/System/Delay.h
         - path: MDK-ARM/System/fifo.c
         - path: MDK-ARM/System/fifo.h
         - path: MDK-ARM/System/sys.c

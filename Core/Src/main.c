@@ -24,6 +24,8 @@
 #include "stm32F4xx_hal.h"
 #include "sys.h"
 #include <stdbool.h>
+#include "jy901.h"
+#include "MyI2C.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,10 +55,11 @@ UART_HandleTypeDef huart3;
 UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
+JY901_Driver *jy901;
 bool Stop_flag = 0;
 bool Power_on_flag = 0;
 int8_t Questionx = 0;
-
+float ROLL,YAW,PITCH;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -124,6 +127,8 @@ int main(void)
   __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
   PID_Init();
   OLED_Init();
+  jy901 = JY901_Create(0x50, GPIOB, GPIO_PIN_6, GPIOB, GPIO_PIN_7);
+  jy901->fun->Init(jy901);
   Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
   OLED_ShowString(0, 0, "Hello!", OLED_8X16);
   OLED_Update();
@@ -138,8 +143,18 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-    
+    //空指针保护，防止驱动创建失败死机
+   if(jy901 == NULL)
+    {
+        OLED_ShowString(0,0,"JY901 ERR",OLED_8X16);
+        OLED_Update();
+        HAL_Delay(100);
+        continue;
+    }
+    // 1. 读取JY901姿态数据
+    jy901->fun->ROLL_GET(jy901);  // 读取横滚角
+    jy901->fun->PITCH_GET(jy901); // 可选：读取俯仰角
+    jy901->fun->YAW_GET(jy901);   // 可选：读取偏航角
     uint8_t keyValue = 0;
 
     keyValue = Key_GetCode();
@@ -157,12 +172,18 @@ int main(void)
             Stop_flag = !Stop_flag;
         }
 
-        OLED_ShowString(0, 0, "Mode:", OLED_8X16);
-        OLED_ShowNum(48, 0, Questionx, 1, OLED_8X16);
-        OLED_ShowString(0, 16, "Stop:", OLED_8X16);
-        OLED_ShowNum(48, 16, Stop_flag, 1, OLED_8X16);
+        // OLED_ShowString(0, 0, "Mode:", OLED_8X16);
+        // OLED_ShowNum(48, 0, Questionx, 1, OLED_8X16);
+        // OLED_ShowString(0, 16, "Stop:", OLED_8X16);
+        // OLED_ShowNum(48, 16, Stop_flag, 1, OLED_8X16);
+        // OLED_Update();
+        OLED_ShowString(0, 0, "ROLL:", OLED_8X16);
+        OLED_ShowFloatNum(48, 0, jy901->var.roll, 1, 3, OLED_8X16);
+        OLED_ShowString(0, 16, "PITCH:", OLED_8X16);
+        OLED_ShowFloatNum(48, 16, jy901->var.pitch, 1, 3, OLED_8X16);
+        OLED_ShowString(0, 32, "YAW:", OLED_8X16);
+        OLED_ShowFloatNum(48, 32, jy901->var.yaw, 1, 3, OLED_8X16);
         OLED_Update();
-
         HAL_Delay(10);
     }
   /* USER CODE END 3 */
