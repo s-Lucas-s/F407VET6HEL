@@ -8,8 +8,11 @@ extern bool Stop_flag;            // 停机标志
 
 /************************ 全局宏定义 ************************/
 #define Integral_MAX 500000.0f // PID积分限幅最大值，防止积分饱和失控
-#define MAX_SPEED 16000        // 电机最大输出限制，保护电机与机械结构
+#define MAX_SPEED 1800        // 电机最大输出限制，保护电机与机械结构
 #define PI 3.1415926f          // 圆周率，用于圆形轨迹计算，备用参数
+
+#define LASER_FIX_X    160.0f    // 你赛前标定的激光坐标值
+#define LASER_FIX_Y    120.0f
 
 #define Get_square(x) ((x) * (x)) // 计算平方
 #define LIMIT_VALUE_SYMMETRIC(value, max_val) \
@@ -112,7 +115,7 @@ void Trajectory_Update(uint32_t dt)
     target_y += Target_Vertical_y * dt / 1000.0f;
 }
 
-void PID_Control(float now_x, float now_y)
+void PID_Control(float target_x, float target_y)
 {
     int32_t x_out;
     int32_t y_out;
@@ -141,8 +144,8 @@ void PID_Control(float now_x, float now_y)
         return;
     }
 
-    float err_x = target_x - now_x;
-    float err_y = target_y - now_y;
+    float err_x = LASER_FIX_X - target_x;
+    float err_y = LASER_FIX_Y - target_y;
 
     int32_t pid_x = Position_PID_Control(x, err_x, interval_time);
     int32_t pid_y = Position_PID_Control(y, err_y, interval_time);
@@ -153,8 +156,6 @@ void PID_Control(float now_x, float now_y)
     x_out = pid_x + feed_x;
     y_out = pid_y + feed_y;
 
-    x_out /= 10;
-    y_out /= 10;
     // 输出限幅，保护电机
     LIMIT_VALUE_SYMMETRIC(x_out, MAX_SPEED);
     LIMIT_VALUE_SYMMETRIC(y_out, MAX_SPEED);
@@ -169,7 +170,7 @@ void PID_Control(float now_x, float now_y)
     }
 
    //Delay_us(1000);
-   HAL_Delay(1);
+   //HAL_Delay(1);
 
     if (y_out >= 0)
     {

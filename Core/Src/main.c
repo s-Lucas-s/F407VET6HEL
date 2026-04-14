@@ -57,7 +57,7 @@ UART_HandleTypeDef huart6;
 /* USER CODE BEGIN PV */
 JY901_Driver *jy901;
 bool Stop_flag = 0;
-bool Power_on_flag = 0;
+bool Power_on_flag = 0;// 第二题的全局变量，用于控制系统是否上电，只有当它为1时才会处理串口数据
 int8_t Questionx = 0;
 float ROLL,YAW,PITCH;
 /* USER CODE END PV */
@@ -172,18 +172,18 @@ int main(void)
             Stop_flag = !Stop_flag;
         }
 
-        // OLED_ShowString(0, 0, "Mode:", OLED_8X16);
-        // OLED_ShowNum(48, 0, Questionx, 1, OLED_8X16);
-        // OLED_ShowString(0, 16, "Stop:", OLED_8X16);
-        // OLED_ShowNum(48, 16, Stop_flag, 1, OLED_8X16);
-        // OLED_Update();
-        OLED_ShowString(0, 0, "ROLL:", OLED_8X16);
-        OLED_ShowFloatNum(48, 0, jy901->var.roll, 1, 3, OLED_8X16);
-        OLED_ShowString(0, 16, "PITCH:", OLED_8X16);
-        OLED_ShowFloatNum(48, 16, jy901->var.pitch, 1, 3, OLED_8X16);
-        OLED_ShowString(0, 32, "YAW:", OLED_8X16);
-        OLED_ShowFloatNum(48, 32, jy901->var.yaw, 1, 3, OLED_8X16);
+        OLED_ShowString(0, 0, "Stop:", OLED_8X16);
+        OLED_ShowNum(48, 0, Stop_flag, 1, OLED_8X16);
+        OLED_ShowString(0, 16, "Question:", OLED_8X16);
+        OLED_ShowNum(72, 16, Questionx, 1, OLED_8X16);
         OLED_Update();
+        // OLED_ShowString(0, 0, "ROLL:", OLED_8X16);
+        // OLED_ShowFloatNum(48, 0, jy901->var.roll, 1, 3, OLED_8X16);
+        // OLED_ShowString(0, 16, "PITCH:", OLED_8X16);
+        // OLED_ShowFloatNum(48, 16, jy901->var.pitch, 1, 3, OLED_8X16);
+        // OLED_ShowString(0, 32, "YAW:", OLED_8X16);
+        // OLED_ShowFloatNum(48, 32, jy901->var.yaw, 1, 3, OLED_8X16);
+        // OLED_Update();
         HAL_Delay(10);
     }
   /* USER CODE END 3 */

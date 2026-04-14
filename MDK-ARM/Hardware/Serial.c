@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "stm32f4xx_hal.h"
+#include <math.h>
 
 uint8_t rx_data; // 接收数据缓冲区
 
@@ -16,6 +17,14 @@ extern float H[3][3];
 extern int8_t Questionx;
 extern bool Power_on_flag, Stop_flag;
 
+// 激光固定坐标（和PID保持一致）
+#define LASER_FIX_X    160.0f
+#define LASER_FIX_Y    120.0f
+
+// 2cm对应的像素误差阈值
+#define ERR_X_MAX  5.0f
+#define ERR_Y_MAX  5.0f
+
 // 共用体：用于float和4字节数组的互转，方便解析串口收到的浮点数据
 typedef union UnionFloat {
     uint8_t Array[4]; // 字节数组形式，用于逐字节接收
@@ -23,16 +32,44 @@ typedef union UnionFloat {
 } UnionFloat_t;
 float center_x, center_y; // 解析后的中心坐标
 
+// ====================== 激光控制核心变量=========================
+uint8_t laser_locked = 0;   // 激光锁死标志：0=关 1=开（永不关闭）
+#define LASER_ON()     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET)  
+#define LASER_OFF()    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET)
+
+// ===================== 扫描模式变量（全部放在Serial内部）=====================
+uint8_t SCAN = 1;          // 1=顺时针扫描  2=逆时针扫描
+bool scan_enable = true;   // true=允许扫描  false=找到目标，停止扫描
+float scan_angle = 0;      // 扫描角度
+float scan_speed = 0.6f; // 扫描速度（度/秒）,数值越大，转得越快
+
 // 函数指针类型定义：用于串口命令处理函数的跳转表
 typedef void (*cmd_handler_USART_t)(void);
 
 #define Get_square(x) ((x) * (x))
 
-// 处理函数1：第一题的串口数据包解析与处理
+void Serial_Scan(void)
+{
+    // 只有允许扫描时才执行
+    if(scan_enable)
+    {
+        if(SCAN == 1)
+        {
+            scan_angle += 0.6f;  // 顺时针慢速转动
+        }
+        else if(SCAN == 2)
+        {
+            scan_angle -= 0.6f;  // 逆时针慢速转动
+        }
+        // 直接调用云台PID输出扫描角度
+        //PID_ScanOutput(scan_angle);
+    }
+}
+
+// 处理函数1：第二题的串口数据包解析与处理
 void handle_USART_BasicQuestion1(void)
 {
     u8 com_data;                        // 用于读取STM32串口收到的数据，这个数据会被下一个数据掩盖，所以要将它用一个数组储存起来。
-    static bool data_packet_count = 0;  // 数据包计数：0=A5包，1=B6包
     static u8 RxCounter = 0;            // 共用体数组索引计数器（0-3循环）
     static u8 RxArrayCounter = 0;       // 全局字节计数器（0-9）
     static UnionFloat_t RxBuffer = {0}; // 定义一个6个成员的数组，可以存放6个数据，刚好放下一个数据包。
@@ -60,44 +97,57 @@ void handle_USART_BasicQuestion1(void)
             RxCounter = 0;
             center_y = RxBuffer.FloatNum;
         }
-        else if (RxArrayCounter == 9)
+        else if (RxArrayCounter == 9 && com_data == 0x6B)
         {
-            if (com_data == 0x6B)
+            // 1. 重置接收状态，准备下一次接收
+            RxCounter = 0;
+            RxArrayCounter = 0;
+            RxState = 0;
+            scan_enable = false;
+
+            //2、立刻给视觉发送应答包，通知视觉数据已收到，可以继续发送下一帧了
+            uint8_t ack_data = 1;
+            Serial_SendPacket(0xA5, 0x5A, &ack_data, 1);
+            
+            //3、启动PID控制
+            PID_Control((int32_t)(center_x), (int32_t)(center_y));
+
+            if (!laser_locked)
             {
-                RxCounter = 0;
-                RxArrayCounter = 0;
-                RxState = 0;
-                if (data_packet_count == 1)
+                static uint8_t stable_cnt = 0;
+                // 计算误差：靶心 → 激光固定点
+                float err_x = fabsf(LASER_FIX_X - center_x);
+                float err_y = fabsf(LASER_FIX_Y - center_y);
+
+                // 连续10帧稳定(≈150ms) → 开光锁死
+                if (err_x < ERR_X_MAX && err_y < ERR_Y_MAX)
                 {
-                    // 【屏蔽未定义的OLED/PID函数，编译通过后再打开】
-                    // OLED_ShowFloatNum(0, 32, center_x, 3, 3, OLED_8X16);
-                    // OLED_ShowFloatNum(0, 48, center_y, 3, 3, OLED_8X16);
-                    // OLED_Update();
-                    // PID_Control((int32_t)(center_x), (int32_t)(center_y));
-                    return;
+                    stable_cnt++;
+                    if (stable_cnt >= 10)
+                    {
+                        laser_locked = 1;
+                        LASER_ON(); // 激光打开，永不关闭
+                    }
                 }
                 else
                 {
-                    Target_Vertical_x = 0;
-                    Target_Vertical_y = 0;
-                    target_x = center_x;
-                    target_y = center_y;
+                    stable_cnt = 0;
                 }
-                data_packet_count = 1;
-                uint8_t ack_data = 1;
-                Serial_SendPacket(0xA5, 0x5A, &ack_data, 1);
             }
-            else
-            {
-                RxState = 0; RxCounter = 0; RxArrayCounter = 0;
-                data_packet_count = 0; center_x = 0; center_y = 0;
-            }
+             return;
+        }
+        else
+        {
+            Target_Vertical_x = 0;
+            Target_Vertical_y = 0;
+            target_x = center_x;
+            target_y = center_y;
         }
     }
     else
     {
-        RxState = 0; RxCounter = 0; center_x = 0; center_y = 0;
-        RxArrayCounter = 0; RxBuffer.FloatNum = 0;
+        RxState = 0; RxCounter = 0; RxArrayCounter = 0;
+        center_x = 0; center_y = 0;
     }
 }
 
@@ -255,7 +305,7 @@ void Serial_SendPacket(uint8_t packet_header, uint8_t packet_tail, uint8_t *Arra
 // 提供给外部调用的接收处理函数
 void Serial_ProcessRx(uint8_t com_data)
 {
-    if (Power_on_flag == 0 && com_data == 0x6B)
+    if (Power_on_flag == 0 && com_data == 0x01)
     {
         if (Stop_flag == 1)
         {
