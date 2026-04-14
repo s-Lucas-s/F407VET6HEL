@@ -53,7 +53,7 @@ UART_HandleTypeDef huart3;
 UART_HandleTypeDef huart6;
 
 /* USER CODE BEGIN PV */
-bool Stop_flag = 0;
+bool Start_flag = 0;
 bool Power_on_flag = 0;
 int8_t Questionx = 0;
 GyroData_t s_GyroData = {0};
@@ -76,7 +76,7 @@ static void MX_UART4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
- 
+
 /* USER CODE END 0 */
 
 /**
@@ -118,22 +118,22 @@ int main(void)
   MX_USART6_UART_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
-  OLED_Init();
-  OLED_ShowString(0, 0, "Hello!", OLED_8X16);
-  OLED_Update();
-  HAL_Delay(500);
+    HAL_Delay(100);
+    OLED_Init();
+    OLED_ShowString(0, 0, "Hello!", OLED_8X16);
+    OLED_Update();
+    HAL_Delay(500);
 
-  HAL_TIM_Base_Start_IT(&htim2);
-  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
-  __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
-  __HAL_UART_ENABLE_IT(&huart4, UART_IT_RXNE);
-  __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
-  gyroscope_Init(&s_GyroData);
-  PID_Init();
-  
+    HAL_TIM_Base_Start_IT(&htim2);
+    __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+    __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
+    __HAL_UART_ENABLE_IT(&huart4, UART_IT_RXNE);
+    __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
+    gyroscope_Init(&s_GyroData);
+    PID_Init();
 
-  Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
-  OLED_Clear();
+    Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
+    OLED_Clear();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -144,31 +144,33 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-    uint8_t keyValue = 0;
+        uint8_t keyValue = 0;
 
-    keyValue = Key_GetCode();
+        keyValue = Key_GetCode();
 
-    if (keyValue == 1)
-    {
-        Questionx++;
-        if (Questionx > 4)
+        if (keyValue == 1)
         {
-            Questionx = 1;
-        }
+            Questionx++;
+            Questionx = Questionx > 6 ? 1 : Questionx;
         }
         else if (keyValue == 2)
         {
-            Stop_flag = !Stop_flag;
+            Start_flag = !Start_flag;
+        }
+        else if (keyValue == 3)
+        {
+            Start_flag = 0;
+            Emm_V5_Stop_Now(0, true);
         }
 
         OLED_ShowString(0, 0, "Mode:", OLED_8X16);
         OLED_ShowNum(48, 0, Questionx, 1, OLED_8X16);
         OLED_ShowString(0, 16, "Stop:", OLED_8X16);
-        OLED_ShowNum(48, 16, Stop_flag, 1, OLED_8X16);
+        OLED_ShowNum(48, 16, Start_flag, 1, OLED_8X16);
+        OLED_ShowFloatNum(55, 16, s_GyroData.fAngle[0], 3, 3, OLED_8X16);
         OLED_Update();
 
         HAL_Delay(10);
-
     }
   /* USER CODE END 3 */
 }
@@ -478,13 +480,36 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
-  /*Configure GPIO pins : KEY1_Pin KEY2_Pin */
-  GPIO_InitStruct.Pin = KEY1_Pin|KEY2_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin : K1_Pin */
+  GPIO_InitStruct.Pin = K1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(K1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LED_Pin */
+  GPIO_InitStruct.Pin = LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : KEY2_Pin */
+  GPIO_InitStruct.Pin = KEY2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(KEY2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : KEY1_Pin */
+  GPIO_InitStruct.Pin = KEY1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(KEY1_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

@@ -1,9 +1,9 @@
 ﻿#include "PID.h"
 #include "Emm_V5.h"
+#include "Serial.h"
 #include <math.h>
-#include "stm32F4xx_hal.h"
 
-extern bool Stop_flag;            // 停机标志
+extern bool Start_flag; // 停机标志
 
 /************************ 全局宏定义 ************************/
 #define Integral_MAX 500000.0f // PID积分限幅最大值，防止积分饱和失控
@@ -11,8 +11,25 @@ extern bool Stop_flag;            // 停机标志
 #define PI 3.1415926f          // 圆周率，用于圆形轨迹计算，备用参数
 
 #define Integration_Separation_Threshold 100.0f // 积分分离阈值
+/************************函数声明************************/
 
+static void handle_PID_BasicQuestion1(float now_x, float now_y);
+static void handle_PID_BasicQuestion2(float now_x, float now_y);
+static void handle_PID_BasicQuestion3(float now_x, float now_y);
 /************************ 枚举与结构体定义 ************************/
+typedef void (*cmd_handler_PID_t)(float data_x, float data_y);
+enum
+{
+    BasicQuestion1 = 0,
+    BasicQuestion2,
+    BasicQuestion3
+};
+static cmd_handler_PID_t cmd_Questionx[5] = {
+    [BasicQuestion1] = handle_PID_BasicQuestion1,
+    [BasicQuestion2] = handle_PID_BasicQuestion2,
+    [BasicQuestion3] = handle_PID_BasicQuestion3,
+};
+
 // 控制维度枚举：区分X轴/Y轴控制
 typedef enum
 {
@@ -162,8 +179,43 @@ int32_t Position_PID_Control(Dimension_t Dimension, float err, uint32_t dt)
  */
 void PID_Control(float now_x, float now_y)
 {
-    int32_t x_out = 0;          // X轴最终电机输出
-    int32_t y_out = 0;          // Y轴最终电机输出
+
+    if ((Questionx - 1) <= (-1) || (Questionx - 1) >= 5)
+    {
+        return;
+    }
+    cmd_Questionx[Questionx - 1](now_x, now_y);
+}
+
+#define search_speed 800
+void Automatic_Search_Control(bool if_searched)
+{
+    static bool if_searching = false;
+    if (if_searched)
+    {
+        Emm_V5_Stop_Now(0, true);
+        if_searching = false;
+        GetSet_start_search(true, false);
+    }
+    else if (!if_searching)
+    {
+        if_searching = true;
+        Emm_V5_Vel_Control(1, 0, search_speed, 0, 0);
+        Emm_V5_Vel_Control(2, 0, search_speed, 0, 0);
+    }
+}
+
+void handle_PID_BasicQuestion1(float now_x, float now_y)
+{
+    // 第一题不做处理
+}
+
+void handle_PID_BasicQuestion2(float now_x, float now_y)
+{
+    int32_t x_err = 0;          // X轴最终电机输出
+    int32_t y_err = 0;          // Y轴最终电机输出
+    int32_t l_out = 0;          // X轴最终电机输出
+    int32_t r_out = 0;          // Y轴最终电机输出
     uint32_t time_count = 0;    // 当前时间戳
     uint32_t interval_time = 0; // 控制周期间隔时间
 
@@ -181,7 +233,7 @@ void PID_Control(float now_x, float now_y)
     time_count_last = time_count;
 
     // 停机标志：停机时清零所有状态，防止重启漂移
-    if (!Stop_flag)
+    if (!Start_flag)
     {
         xerr_last = 0;
         yerr_last = 0;
@@ -213,28 +265,36 @@ void PID_Control(float now_x, float now_y)
     int32_t feed_y = Target_Vertical_y * Kf_y;
 
     // 步骤5：最终输出 = PID修正 + 速度前馈
-    x_out = pid_x + feed_x;
-    y_out = pid_y + feed_y;
+    x_err = pid_x + feed_x;
+    y_err = pid_y + feed_y;
 
-    x_out /= 10;
-    y_out /= 10;
+    x_err /= 10;
+    y_err /= 10;
+
+    l_out = x_err + y_err;
+    r_out = x_err - y_err;
+
     // 输出限幅，保护电机
-    LIMIT_VALUE_SYMMETRIC(x_out, MAX_SPEED);
-    LIMIT_VALUE_SYMMETRIC(y_out, MAX_SPEED);
+    LIMIT_VALUE_SYMMETRIC(l_out, MAX_SPEED);
+    LIMIT_VALUE_SYMMETRIC(r_out, MAX_SPEED);
 
-    if (x_out >= 0)
+    if (l_out >= 0)
     {
-        Emm_V5_Vel_Control(1, 1, (uint16_t)x_out, 0, 0);
+        Emm_V5_Vel_Control(1, 1, (uint16_t)l_out, 0, 0);
     }
     else
     {
-        Emm_V5_Vel_Control(1, 0, (uint16_t)(-x_out), 0, 0);
+        Emm_V5_Vel_Control(1, 0, (uint16_t)(-l_out), 0, 0);
     }
 
-    if (y_out >= 0)
+    if (r_out >= 0)
     {
-        Emm_V5_Vel_Control(2, 0, (uint16_t)y_out, 0, 0);
+        Emm_V5_Vel_Control(2, 0, (uint16_t)r_out, 0, 0);
     }
     else
-        Emm_V5_Vel_Control(2, 1, (uint16_t)-y_out, 0, 0);
+        Emm_V5_Vel_Control(2, 1, (uint16_t)(-r_out), 0, 0);
+}
+
+void handle_PID_BasicQuestion3(float now_x, float now_y)
+{
 }

@@ -3,7 +3,7 @@
 
 /* ——————————include—————————— */
 #include "stm32F4xx_hal.h"
-#include "main.h" 
+#include "main.h"
 #include "Delay.h"
 #include "Emm_V5.h"
 #include "OLED.h"
@@ -14,11 +14,11 @@
 #include "Serial1.h"
 #include "Key.h"
 #include "IAP.h"
-#include "wit_c_sdk.h" 
+#include "wit_c_sdk.h"
 #include "gyroscope.h"
 
 /* ————————————变量———————————— */
-extern bool Stop_flag;
+extern bool Start_flag;
 extern int8_t Questionx;
 extern bool Power_on_flag;
 

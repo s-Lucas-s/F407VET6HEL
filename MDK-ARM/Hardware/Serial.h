@@ -10,8 +10,8 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-// 引用CubeMX定义的USART3句柄
-extern UART_HandleTypeDef huart3;
+// 引用CubeMX定义的USART2句柄
+extern UART_HandleTypeDef huart2;
 
 // 外部变量
 extern const uint8_t RESET_KEY;// 定义一个全局变量，用于接收串口命令，控制系统重置
@@ -25,5 +25,7 @@ void Serial_SendString(char *String);
 void Serial_SendNumber(uint32_t Number, uint8_t Length);
 void Serial_SendPacket(uint8_t packet_header, uint8_t packet_tail, uint8_t *Array, uint16_t Length);
 void Serial_ProcessRx(uint8_t com_data);
+bool Get_if_searched(void);
+bool GetSet_start_search(bool if_set, bool new_value);
 
 #endif

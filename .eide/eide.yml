@@ -71,8 +71,6 @@ virtualFolder:
         - path: MDK-ARM/Hardware/Serial.h
         - path: MDK-ARM/Hardware/Serial1.c
         - path: MDK-ARM/Hardware/Serial1.h
-        - path: MDK-ARM/Hardware/Timer.c
-        - path: MDK-ARM/Hardware/Timer.h
         - path: MDK-ARM/Hardware/usart.c
         - path: MDK-ARM/Hardware/usart.h
       folders:

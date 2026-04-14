@@ -308,7 +308,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>2</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -333,7 +333,7 @@
               <MiscControls />
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine />
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;./Hardware;./System</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;./Hardware;./System;./Hardware/wit_c_sdk</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -597,16 +597,6 @@
           <GroupName>Hardware</GroupName>
           <Files>
             <File>
-              <FileName>board.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\board.c</FilePath>
-            </File>
-            <File>
-              <FileName>board.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\board.h</FilePath>
-            </File>
-            <File>
               <FileName>EMM_V5.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\EMM_V5.c</FilePath>
@@ -687,16 +677,6 @@
               <FilePath>.\Hardware\Serial1.h</FilePath>
             </File>
             <File>
-              <FileName>Timer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Hardware\Timer.c</FilePath>
-            </File>
-            <File>
-              <FileName>Timer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Hardware\Timer.h</FilePath>
-            </File>
-            <File>
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\usart.c</FilePath>
@@ -740,6 +720,46 @@
               <FileName>sys.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\System\sys.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Hardware/wit_c_sdk</GroupName>
+          <Files>
+            <File>
+              <FileName>gyroscope.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\wit_c_sdk\gyroscope.c</FilePath>
+            </File>
+            <File>
+              <FileName>gyroscope.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\wit_c_sdk\gyroscope.h</FilePath>
+            </File>
+            <File>
+              <FileName>REG.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\wit_c_sdk\REG.h</FilePath>
+            </File>
+            <File>
+              <FileName>uart4.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\wit_c_sdk\uart4.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart4.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\wit_c_sdk\uart4.h</FilePath>
+            </File>
+            <File>
+              <FileName>wit_c_sdk.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\wit_c_sdk\wit_c_sdk.c</FilePath>
+            </File>
+            <File>
+              <FileName>wit_c_sdk.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\wit_c_sdk\wit_c_sdk.h</FilePath>
             </File>
           </Files>
         </Group>
