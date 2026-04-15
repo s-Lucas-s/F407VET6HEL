@@ -60,6 +60,7 @@ bool Stop_flag = 0;
 bool Power_on_flag = 0;// 第二题的全局变量，用于控制系统是否上电，只有当它为1时才会处理串口数据
 int8_t Questionx = 0;
 float ROLL,YAW,PITCH;
+uint8_t SCAN = 1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -161,16 +162,25 @@ int main(void)
 
     if (keyValue == 1)
     {
-        Questionx++;
-        if (Questionx > 4)
-        {
-            Questionx = 1;
-        }
-        }
-        else if (keyValue == 2)
-        {
-            Stop_flag = !Stop_flag;
-        }
+      Questionx++;
+      if (Questionx > 4)
+      {
+          Questionx = 1;
+      }
+    }
+    else if (keyValue == 2)
+    {
+      Stop_flag = !Stop_flag;
+    }
+    else if (keyValue == 3)
+    {
+       SCAN++;
+       if(SCAN > 2)
+       {
+           SCAN = 1;
+       }
+    }
+
 
         OLED_ShowString(0, 0, "Stop:", OLED_8X16);
         OLED_ShowNum(48, 0, Stop_flag, 1, OLED_8X16);
@@ -507,6 +517,12 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+
+  /*Configure GPIO pin : K1_Pin */
+  GPIO_InitStruct.Pin = K1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(K1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : KEY1_Pin KEY2_Pin */
   GPIO_InitStruct.Pin = KEY1_Pin|KEY2_Pin;

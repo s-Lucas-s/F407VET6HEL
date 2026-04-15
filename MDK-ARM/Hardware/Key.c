@@ -5,7 +5,9 @@ static unsigned char Key_Code = 0;
 // 按键引脚定义：保留原硬件映射（GPIOB_Pin0/1），可根据实际修改
 #define KEY1_PIN    GPIO_PIN_0    // 按键1引脚：GPIOB_Pin0
 #define KEY2_PIN    GPIO_PIN_1    // 按键2引脚：GPIOB_Pin1
+#define K1_PIN      GPIO_PIN_0    // 按键K1引脚：GPIOA_Pin0
 #define KEY_GPIO    GPIOB         // 按键所在GPIO端口
+#define K1_GPIO     GPIOA         // K1端口
 
 
 /**
@@ -41,6 +43,10 @@ unsigned char Key_Get(void)
     {
         CurrentKey = 2;  // KEY2按下
     }
+    else if (HAL_GPIO_ReadPin(K1_GPIO, K1_PIN) == GPIO_PIN_SET)
+    {
+        CurrentKey = 3;  // K1按下
+    }
     
     return CurrentKey;
 }
@@ -67,6 +73,10 @@ void Key_LoopDetect(void)
     else if (LastState == 2 && NowState == 0)
     {
         Key_Code = 2;  // KEY2松手
+    }
+    else if (LastState == 3 && NowState == 0)
+    {
+        Key_Code = 3;  // K1松手
     }
     
     // 更新上一状态
