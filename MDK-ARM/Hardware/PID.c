@@ -187,23 +187,6 @@ void PID_Control(float now_x, float now_y)
     cmd_Questionx[Questionx - 1](now_x, now_y);
 }
 
-#define search_speed 800
-void Automatic_Search_Control(bool if_searched)
-{
-    static bool if_searching = false;
-    if (if_searched)
-    {
-        Emm_V5_Stop_Now(0, true);
-        if_searching = false;
-        GetSet_start_search(true, false);
-    }
-    else if (!if_searching)
-    {
-        if_searching = true;
-        Emm_V5_Vel_Control(1, 0, search_speed, 0, 0);
-        Emm_V5_Vel_Control(2, 0, search_speed, 0, 0);
-    }
-}
 
 void handle_PID_BasicQuestion1(float now_x, float now_y)
 {

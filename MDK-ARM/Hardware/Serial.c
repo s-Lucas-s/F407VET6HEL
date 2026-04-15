@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 const uint8_t RESET_KEY = 0xFF; // 定义一个全局变量，用于接收串口命令，控制系统重置
-static bool if_searched = false;
+static bool Zeroed = false;
 static bool start_search = false;
 
 // 外部变量声明
@@ -106,151 +106,86 @@ void handle_USART_BasicQuestion1(void)
 
 void handle_USART_BasicQuestion2(uint8_t com_data)
 {
-    static bool data_packet_count = 0;
-    static uint8_t RxCounter = 0;
-    static uint8_t RxArrayCounter = 0;
-    static UnionFloat_t RxBuffer = {0};
-    static uint8_t RxState = 0;
-    static uint8_t Position = 0;
-    static Point2D src[4];
-    static Point2D dst[4] = {{0.0f, 0.0f}, {100.0f, 0.0f}, {100.0f, 100.0f}, {0.0f, 100.0f}};
-    static const Point2D rect_points[4] = {{0.0f, 0.0f}, {100.0f, 0.0f}, {100.0f, 100.0f}, {0.0f, 100.0f}};
+    u8 com_data;                        // 用于读取STM32串口收到的数据，这个数据会被下一个数据掩盖，所以要将它用一个数组储存起来。
+    static bool data_packet_count = 0;  // 数据包计数：0=A5包，1=B6包
+    static u8 RxCounter = 0;            // 共用体数组索引计数器（0-3循环）
+    static u8 RxArrayCounter = 0;       // 全局字节计数器（0-9）
+    static UnionFloat_t RxBuffer = {0}; // 定义一个6个成员的数组，可以存放6个数据，刚好放下一个数据包。
+    static u8 RxState = 0;              // 接收状态，判断程序应该接收第一个帧头、第二个帧头、数据或帧尾。
 
-    if (RxState == 0 && com_data == 0xB6)
+    // 当RXState处于0时，为接收帧头1模式。若接收到帧头1（0xB6），将RXState置1，切换到接收帧头2模式，并将帧头1存入RxBuffer[0]的位置，RxCounter加一。
+    if (RxState == 0 && com_data == 0xB6) // 0xB6帧头
+    {
+        RxState = 1;
+    }
+    else if (RxState == 1 && com_data == 0x59) // 0x59帧头
+    {
+        RxState = 2;
+        start_search = false;
+    }
+
+    // 当RXState处于0时，为接收帧头1模式。若接收到帧头1（0xB6），将RXState置1，切换到接收帧头2模式，并将帧头1存入RxBuffer[0]的位置，RxCounter加一。
+    if (RxState == 0 && com_data == 0xB6) // 0xB6帧头
     {
         RxState = 1;
         RxCounter = 0;
         RxArrayCounter = 0;
-        RxBuffer.FloatNum = 0.0f;
-        if_searched = false;
-        start_search = true;
     }
-    else if (RxState == 1 && com_data == 0x59)
+    else if (RxState == 1)
     {
-        RxState = 2;
-        RxCounter = 0;
-        RxArrayCounter = 0;
-        RxBuffer.FloatNum = 0.0f;
-        if_searched = true;
-    }
-    else if (RxState == 2)
-    {
-        RxBuffer.Array[RxCounter++] = com_data;
+        RxBuffer.Array[RxCounter++] = com_data; // 数据填入共用体数组
         RxArrayCounter++;
-        if (data_packet_count == 0)
+        if (RxArrayCounter == 4) // 收满第1个float（4字节）
         {
-            if (RxArrayCounter < 33)
-            {
-                switch (RxArrayCounter)
-                {
-                case 4:
-                    RxCounter = 0;
-                    src[0].x = RxBuffer.FloatNum;
-                    break;
-                case 8:
-                    RxCounter = 0;
-                    src[0].y = RxBuffer.FloatNum;
-                    break;
-                case 12:
-                    RxCounter = 0;
-                    src[1].x = RxBuffer.FloatNum;
-                    break;
-                case 16:
-                    RxCounter = 0;
-                    src[1].y = RxBuffer.FloatNum;
-                    break;
-                case 20:
-                    RxCounter = 0;
-                    src[2].x = RxBuffer.FloatNum;
-                    break;
-                case 24:
-                    RxCounter = 0;
-                    src[2].y = RxBuffer.FloatNum;
-                    break;
-                case 28:
-                    RxCounter = 0;
-                    src[3].x = RxBuffer.FloatNum;
-                    break;
-                case 32:
-                    RxCounter = 0;
-                    src[3].y = RxBuffer.FloatNum;
-                    break;
-                default:
-                    break;
-                }
-            }
-            else if (RxArrayCounter == 33)
-            {
-                if (com_data == 0x5A)
-                {
-                    RxCounter = 0;
-                    RxArrayCounter = 0;
-                    RxState = 0;
-                    // 【屏蔽未定义的视觉函数】
-                    // if (!(calcHomography(src, dst, H)))
-                    // {
-                    //     Serial_SendByte(0x01);
-                    //     data_packet_count = 1;
-                    // }
-                }
-                else
-                {
-                    RxState = 0;
-                    RxCounter = 0;
-                    RxArrayCounter = 0;
-                    data_packet_count = 0;
-                    center_x = 0;
-                    center_y = 0;
-                }
-            }
+            RxCounter = 0;
+            center_x = RxBuffer.FloatNum;
         }
-        else
+        else if (RxArrayCounter == 8) // 收满第2个float（4字节）
         {
-            if (RxArrayCounter == 4)
+            RxCounter = 0;
+            center_y = RxBuffer.FloatNum;
+        }
+        else if (RxArrayCounter == 9) // 收满帧尾（第10个字节）
+        {
+            if (com_data == 0x6B) // 校验帧尾0x6B
             {
                 RxCounter = 0;
-                center_x = RxBuffer.FloatNum;
-            }
-            else if (RxArrayCounter == 8)
-            {
-                RxCounter = 0;
-                center_y = RxBuffer.FloatNum;
-            }
-            else if (RxArrayCounter == 9)
-            {
-                if (com_data == 0x6B)
+                RxArrayCounter = 0;
+                RxState = 0;
+                if (data_packet_count == 1) // B6包收完：执行PID控制
                 {
-                    // 【屏蔽未定义的视觉/PID函数】
-                    // Point2D pixel_pt = {center_x, center_y};
-                    // Point2D real_pt;
-                    // visualToReal(H, pixel_pt, &real_pt);
-                    // float err_x = target_x - real_pt.x;
-                    // float err_y = target_y - real_pt.y;
-                    // float dist_sq = Get_square(err_x) + Get_square(err_y);
-                    // if (dist_sq < 4.0f)
-                    // {
-                    //     Position = (Position + 1) % 4;
-                    //     target_x = rect_points[Position].x;
-                    //     target_y = rect_points[Position].y;
-                    // }
-                    // PID_Control(real_pt.x, real_pt.y);
+                    OLED_ShowFloatNum(0, 32, center_x, 3, 3, OLED_8X16);
+                    OLED_ShowFloatNum(0, 48, center_y, 3, 3, OLED_8X16);
+                    OLED_Update();
 
-                    RxState = 0;
-                    RxCounter = 0;
-                    RxArrayCounter = 0;
+                    PID_Control(center_x, center_y);
                     data_packet_count = 0;
+                    return;
                 }
                 else
                 {
-                    RxState = 0;
-                    RxCounter = 0;
-                    RxArrayCounter = 0;
-                    data_packet_count = 0;
+                    Target_Vertical_x = 0;
+                    Target_Vertical_y = 0;
+                    target_x = center_x;
+                    target_y = center_y;
                 }
+                data_packet_count = 1; // 切换为等待B6目标激光包
+                uint8_t ack_data = 1;  // 单个字节数据
+                Serial_SendPacket(0xA5, 0x5A, &ack_data, 1);
+            }
+            else
+            {
+                // 帧尾不对，立即重置，不用等 RxCounter > 10
+                RxState = 0;
+                RxCounter = 0;
+                RxArrayCounter = 0;
+                data_packet_count = 0;
+                center_x = 0;
+                center_y = 0;
             }
         }
     }
-    else
+    else // 接收异常
     {
         RxState = 0;
         RxCounter = 0;
@@ -259,6 +194,16 @@ void handle_USART_BasicQuestion2(uint8_t com_data)
         RxArrayCounter = 0;
         RxBuffer.FloatNum = 0;
     }
+}
+else
+{
+    RxState = 0;
+    RxCounter = 0;
+    center_x = 0;
+    center_y = 0;
+    RxArrayCounter = 0;
+    RxBuffer.FloatNum = 0;
+}
 }
 
 void handle_USART_BasicQuestion3(uint8_t com_data)
@@ -335,6 +280,7 @@ void Serial_ProcessRx(uint8_t com_data)
         {
             Power_on_flag = 1;
             Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&Questionx, 1);
+            start_search = true;
         }
         return;
     }
@@ -358,4 +304,19 @@ bool GetSet_start_search(bool if_set, bool new_value)
         start_search = new_value;
     }
     return start_search;
+}
+
+#define search_speed 800
+void Automatic_Search_Control(bool if_searched)
+{
+    if (start_search)
+    {
+        Emm_V5_Stop_Now(0, true);
+        start_search = false;
+    }
+    else
+    {
+        Emm_V5_Vel_Control(1, 0, search_speed, 0, 0);
+        Emm_V5_Vel_Control(2, 0, search_speed, 0, 0);
+    }
 }

@@ -20,6 +20,5 @@ extern int8_t Questionx; // 当前题目编号（1-5）
 
 void PID_Init(void);
 void PID_Control(float now_x, float now_y);
-void Automatic_Search_Control(bool if_searched);
 
 #endif

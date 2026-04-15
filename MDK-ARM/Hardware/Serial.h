@@ -27,5 +27,6 @@ void Serial_SendPacket(uint8_t packet_header, uint8_t packet_tail, uint8_t *Arra
 void Serial_ProcessRx(uint8_t com_data);
 bool Get_if_searched(void);
 bool GetSet_start_search(bool if_set, bool new_value);
+void Automatic_Search_Control(bool if_searched);
 
 #endif
