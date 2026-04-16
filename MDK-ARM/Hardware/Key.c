@@ -2,14 +2,6 @@
 
 static unsigned char Key_Code = 0;
 
-// 按键引脚定义：保留原硬件映射（GPIOB_Pin0/1），可根据实际修改
-#define KEY1_PIN    GPIO_PIN_0    // 按键1引脚：GPIOB_Pin0
-#define KEY2_PIN    GPIO_PIN_1    // 按键2引脚：GPIOB_Pin1
-#define K1_PIN      GPIO_PIN_0    // 按键K1引脚：GPIOA_Pin0
-#define KEY_GPIO    GPIOB         // 按键所在GPIO端口
-#define K1_GPIO     GPIOA         // K1端口
-
-
 /**
  * @brief 外部调用函数：获取非连续键值（松手后返回一次）
  * @return unsigned char 按键键值（0=无按键，1=KEY1，2=KEY2）
@@ -35,15 +27,15 @@ unsigned char Key_Get(void)
     
     // 读取引脚电平：低电平代表按键按下（上拉输入模式）
     // F4用HAL_GPIO_ReadPin替代GPIO_ReadInputDataBit，返回GPIO_PIN_RESET/GPIO_PIN_SET
-    if (HAL_GPIO_ReadPin(KEY_GPIO, KEY1_PIN) == GPIO_PIN_RESET)
+    if (HAL_GPIO_ReadPin(KEY1_GPIO_Port, KEY1_Pin) == GPIO_PIN_RESET)
     {
         CurrentKey = 1;  // KEY1按下
     }
-    else if (HAL_GPIO_ReadPin(KEY_GPIO, KEY2_PIN) == GPIO_PIN_RESET)
+    if (HAL_GPIO_ReadPin(KEY2_GPIO_Port, KEY2_Pin) == GPIO_PIN_RESET)
     {
         CurrentKey = 2;  // KEY2按下
     }
-    else if (HAL_GPIO_ReadPin(K1_GPIO, K1_PIN) == GPIO_PIN_SET)
+    if (HAL_GPIO_ReadPin(K1_GPIO_Port, K1_Pin) == GPIO_PIN_RESET)
     {
         CurrentKey = 3;  // K1按下
     }
