@@ -284,18 +284,6 @@ void USART2_IRQHandler(void)
   /* USER CODE BEGIN USART2_IRQn 0 */
   Serial_ProcessRx((uint8_t)(huart2.Instance->DR & 0xFF));
 
-  if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE) != RESET)
-  {
-      ch = (uint8_t)(huart2.Instance->DR & 0xFF);
-      Serial_ProcessRx(ch);
-      __HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_RXNE);
-  }
-
-  // 清除溢出错误，防止卡死
-  if (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_ORE) != RESET)
-  {
-      __HAL_UART_CLEAR_OREFLAG(&huart2);
-  }
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
