@@ -73,17 +73,7 @@ virtualFolder:
         - path: MDK-ARM/Hardware/Serial1.h
         - path: MDK-ARM/Hardware/usart.c
         - path: MDK-ARM/Hardware/usart.h
-      folders:
-        - name: wit_c_sdk
-          files:
-            - path: MDK-ARM/Hardware/wit_c_sdk/REG.h
-            - path: MDK-ARM/Hardware/wit_c_sdk/wit_c_sdk.c
-            - path: MDK-ARM/Hardware/wit_c_sdk/wit_c_sdk.h
-            - path: MDK-ARM/Hardware/wit_c_sdk/uart4.c
-            - path: MDK-ARM/Hardware/wit_c_sdk/uart4.h
-            - path: MDK-ARM/Hardware/wit_c_sdk/gyroscope.c
-            - path: MDK-ARM/Hardware/wit_c_sdk/gyroscope.h
-          folders: []
+      folders: []
     - name: System
       files:
         - path: MDK-ARM/System/Delay.c
@@ -138,7 +128,7 @@ targets:
             language-c: c99
             language-cpp: c++11
             one-elf-section-per-function: true
-            optimization: level-1
+            optimization: level-0
             short-enums#wchar: true
             warnings: ac5-like-warnings
           global:
