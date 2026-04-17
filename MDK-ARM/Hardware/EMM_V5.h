@@ -29,9 +29,6 @@ typedef enum {
     S_ORG   = 16, /* 读取正在回零/回零失败状态标志位 */
 } SysParams_t;
 
-// 新增：USART句柄定义（必须和CubeMX生成的huart2一致！）
-extern UART_HandleTypeDef huart2;
-
 // 新增：串口发送函数声明（替代原usart_SendCmd，HAL库版）
 // void usart_SendCmd(uint8_t *cmd, uint8_t len);  // 移除，统一在usart.h中声明
 
