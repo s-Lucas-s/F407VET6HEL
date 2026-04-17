@@ -14,7 +14,6 @@ const uint8_t RESET_KEY = 0xFF; // 定义一个全局变量，用于接收串口
 
 // 外部变量声明
 extern float Target_Vertical_x, Target_Vertical_y, target_x, target_y;
-extern float H[3][3];
 extern int8_t Questionx;
 extern bool Power_on_flag, Stop_flag;
 
@@ -271,19 +270,19 @@ static cmd_handler_USART_t cmd_Questionx[6] = {
 // ===================== 串口发送函数 =====================
 void Serial_SendByte(uint8_t Byte)
 {
-    HAL_UART_Transmit(&huart3, &Byte, 1, 10);
+    HAL_UART_Transmit(&huart2, &Byte, 1, 10);
 }
 
 void Serial_SendArray(uint8_t *Array, uint16_t Length)
 {
-    HAL_UART_Transmit(&huart3, Array, Length, 100);
+    HAL_UART_Transmit(&huart2, Array, Length, 100);
 }
 
 void Serial_SendString(char *String)
 {
     uint16_t len = 0;
     while(String[len] != '\0') len++;
-    HAL_UART_Transmit(&huart3, (uint8_t*)String, len, 100);
+    HAL_UART_Transmit(&huart2, (uint8_t*)String, len, 100);
 }
 
 uint32_t Serial_Pow(uint32_t X, uint32_t Y)
