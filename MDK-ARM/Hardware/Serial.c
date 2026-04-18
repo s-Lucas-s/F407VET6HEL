@@ -18,29 +18,33 @@ extern int8_t Questionx;
 extern bool Power_on_flag, Stop_flag;
 
 // 激光固定坐标（和PID保持一致）
-#define LASER_FIX_X    160.0f
-#define LASER_FIX_Y    120.0f
+#define LASER_FIX_X 160.0f
+#define LASER_FIX_Y 120.0f
 
 // 2cm对应的像素误差阈值
-#define ERR_X_MAX  5.0f
-#define ERR_Y_MAX  5.0f
+#define ERR_X_MAX 5.0f
+#define ERR_Y_MAX 5.0f
 
 // 共用体：用于float和4字节数组的互转，方便解析串口收到的浮点数据
-typedef union UnionFloat {
+typedef union UnionFloat
+{
     uint8_t Array[4]; // 字节数组形式，用于逐字节接收
     float FloatNum;   // 浮点数形式，用于直接读取解析后的坐标
 } UnionFloat_t;
 float center_x, center_y; // 解析后的中心坐标
 
 // ====================== 激光控制核心变量=========================
-uint8_t laser_locked = 0;   // 激光锁死标志：0=关 1=开（永不关闭）
-#define LASER_ON()     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET)  
-#define LASER_OFF()    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET)
+uint8_t laser_locked = 0; // 激光锁死标志：0=关 1=开（永不关闭）
+#define LASER_ON() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET)
+#define LASER_OFF() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET)
 
 // ===================== 扫描模式变量（全部放在Serial内部）=====================
-extern uint8_t SCAN;          // 1=顺时针扫描  2=逆时针扫描
-uint8_t Scan_Mode_Flag = 1; // 模式标志位：0=PID跟踪模式  1=扫描寻靶模式（收到数据自动变0）
-const uint16_t SCAN_SPEED = 500;  // 扫描速度
+extern uint8_t SCAN;             // 1=顺时针扫描  2=逆时针扫描
+uint8_t Scan_Mode_Flag = 1;      // 模式标志位：0=PID跟踪模式  1=扫描寻靶模式（收到数据自动变0）
+const uint16_t SCAN_SPEED = 500; // 扫描速度
+
+// 记录最后一次收到有效数据包的时间
+uint32_t Last_Valid_Rx_Time = 0;
 
 // 函数指针类型定义：用于串口命令处理函数的跳转表
 typedef void (*cmd_handler_USART_t)(void);
@@ -49,12 +53,12 @@ typedef void (*cmd_handler_USART_t)(void);
 
 void Serial_Scan_Mode(void)
 {
-    if(SCAN == 1)
+    if (SCAN == 1)
     {
         // X轴顺时针旋转(方向1，速度SCAN_SPEED)
         Emm_V5_Vel_Control(1, 1, SCAN_SPEED, 0, 0);
     }
-    else if(SCAN == 2)
+    else if (SCAN == 2)
     {
         // X轴逆时针旋转(方向0，速度SCAN_SPEED)
         Emm_V5_Vel_Control(1, 0, SCAN_SPEED, 0, 0);
@@ -63,7 +67,30 @@ void Serial_Scan_Mode(void)
     Emm_V5_Vel_Control(2, 0, 0, 0, 0);
 }
 
-// 处理函数1：第二题的串口数据包解析与处理
+// ===================== 系统控制与模式判断轮询任务 =====================
+// 独立执行：根据标志位自动选择 扫描 / PID，不依赖串口接收
+void Serial_Control_Task(void)
+{
+    // 如果超过 300ms 没有收到有效的视觉数据包，自动切换回扫描模式
+    // 因为这里是在主循环 while(1) 中不断轮询，所以即使在没接线、串口中断不触发的情况下也能有效判断超时！
+    if (HAL_GetTick() - Last_Valid_Rx_Time > 300)
+    {
+        Scan_Mode_Flag = 1;
+    }
+
+    if (Scan_Mode_Flag == 1)
+    {
+        // 无有效数据包 → 执行扫描
+        Serial_Scan_Mode();
+    }
+    else
+    {
+        // 收到有效数据包 → 执行PID跟踪
+        PID_Control((int32_t)center_x, (int32_t)center_y);
+    }
+}
+
+// 处理函数1：第1题的串口数据包解析与处理
 void handle_USART_BasicQuestion1(void)
 {
     u8 com_data;                        // 用于读取STM32串口收到的数据，这个数据会被下一个数据掩盖，所以要将它用一个数组储存起来。
@@ -71,7 +98,6 @@ void handle_USART_BasicQuestion1(void)
     static u8 RxArrayCounter = 0;       // 全局字节计数器（0-9）
     static UnionFloat_t RxBuffer = {0}; // 定义一个6个成员的数组，可以存放6个数据，刚好放下一个数据包。
     static u8 RxState = 0;              // 接收状态，判断程序应该接收第一个帧头、第二个帧头、数据或帧尾。
-    // static bool okk = 0;              // 接收状态，判断程序应该接收第一个帧头、第二个帧头、数据或帧尾。
     com_data = rx_data;
 
     if (RxState == 0 && com_data == 0xB6)
@@ -82,7 +108,11 @@ void handle_USART_BasicQuestion1(void)
     }
     else if (RxState == 1)
     {
-        RxBuffer.Array[RxCounter++] = com_data;
+        if (RxCounter < 4)
+        {
+            RxBuffer.Array[RxCounter++] = com_data;
+        }
+
         RxArrayCounter++;
         if (RxArrayCounter == 4)
         {
@@ -100,23 +130,14 @@ void handle_USART_BasicQuestion1(void)
             RxCounter = 0;
             RxArrayCounter = 0;
             RxState = 0;
-            Scan_Mode_Flag = 0; // 收到数据包，切换到PID跟踪模式
+            Scan_Mode_Flag = 0;                 // 收到完整数据包，切换到PID跟踪模式
+            Last_Valid_Rx_Time = HAL_GetTick(); // 刷新有效数据包时间，打断超时
 
-             // 【屏蔽未定义的视觉/PID函数】
-
-            //2、立刻给视觉发送应答包，通知视觉数据已收到，可以继续发送下一帧了
+            // 2. 立刻给视觉发送应答包，通知视觉数据已收到，可以继续发送下一帧了
             uint8_t ack_data = 1;
             Serial_SendPacket(0xA5, 0x5A, &ack_data, 1);
-            
-            //3、标志位判断：扫描 / PID
-            if(Scan_Mode_Flag == 1)
-            {
-                Serial_Scan_Mode();
-            }
-            else
-            {
-                PID_Control((int32_t)(center_x), (int32_t)(center_y));
-            }
+
+            // 【移除此处的电机控制代码】由于外面已经有了 Serial_Motor_Control() 轮询，这里只需要专心接收数据即可，避免重复调用带来不稳定性。
 
             if (!laser_locked)
             {
@@ -140,7 +161,14 @@ void handle_USART_BasicQuestion1(void)
                     stable_cnt = 0;
                 }
             }
-             return;
+            return;
+        }
+        else if (RxArrayCounter >= 9)
+        {
+            // 帧尾不匹配，或数据超长溢出，强制重置状态防止内存越界！！
+            RxState = 0;
+            RxCounter = 0;
+            RxArrayCounter = 0;
         }
         else
         {
@@ -152,16 +180,25 @@ void handle_USART_BasicQuestion1(void)
     }
     else
     {
-        RxState = 0; RxCounter = 0; RxArrayCounter = 0;
-        center_x = 0; center_y = 0;
+        RxState = 0;
+        RxCounter = 0;
+        RxArrayCounter = 0;
+        // 注意：千万不要在这里把 center_x 和 center_y 清零！
+        // 否则如果在接收间隙收到杂波，这两项归零会导致 PID 瞬间猛拽云台去跟踪 (0,0)。
     }
 }
 
-void handle_USART_BasicQuestion2(void){}
-void handle_USART_BasicQuestion3(void){}
-void handle_USART_BasicQuestion4(void){}
+void handle_USART_BasicQuestion2(void) {}
+void handle_USART_BasicQuestion3(void) {}
+void handle_USART_BasicQuestion4(void) {}
 
-enum { BasicQuestion1=0, BasicQuestion2, BasicQuestion3, BasicQuestion4 };
+enum
+{
+    BasicQuestion1 = 0,
+    BasicQuestion2,
+    BasicQuestion3,
+    BasicQuestion4
+};
 static cmd_handler_USART_t cmd_Questionx[6] = {
     [BasicQuestion1] = handle_USART_BasicQuestion1,
     [BasicQuestion2] = handle_USART_BasicQuestion2,
@@ -184,23 +221,25 @@ void Serial_SendArray(uint8_t *Array, uint16_t Length)
 void Serial_SendString(char *String)
 {
     uint16_t len = 0;
-    while(String[len] != '\0') len++;
-    HAL_UART_Transmit(&huart2, (uint8_t*)String, len, 100);
+    while (String[len] != '\0')
+        len++;
+    HAL_UART_Transmit(&huart2, (uint8_t *)String, len, 100);
 }
 
 uint32_t Serial_Pow(uint32_t X, uint32_t Y)
 {
     uint32_t Result = 1;
-    while(Y--) Result *= X;
+    while (Y--)
+        Result *= X;
     return Result;
 }
 
 void Serial_SendNumber(uint32_t Number, uint8_t Length)
 {
     uint8_t i;
-    for(i=0; i<Length; i++)
+    for (i = 0; i < Length; i++)
     {
-        Serial_SendByte(Number / Serial_Pow(10, Length-i-1) % 10 + '0');
+        Serial_SendByte(Number / Serial_Pow(10, Length - i - 1) % 10 + '0');
     }
 }
 
@@ -214,6 +253,10 @@ void Serial_SendPacket(uint8_t packet_header, uint8_t packet_tail, uint8_t *Arra
 // 提供给外部调用的接收处理函数
 void Serial_ProcessRx(uint8_t com_data)
 {
+    // 【关键修复】：确保全局缓冲 rx_data 与当前传入的 com_data 同步！
+    // 否则 handle_USART_BasicQuestion1 内部读取的永远是旧数据！
+    rx_data = com_data;
+
     if (Power_on_flag == 0 && com_data == 0x01)
     {
         if (Stop_flag == 1)

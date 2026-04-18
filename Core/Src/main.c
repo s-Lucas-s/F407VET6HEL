@@ -178,7 +178,7 @@ int main(void)
        }
     }
 
-
+        Serial_Control_Task(); // 根据标志位自动选择 扫描 / PID，不依赖串口接收
         OLED_ShowString(0, 0, "Stop:", OLED_8X16);
         OLED_ShowNum(48, 0, Stop_flag, 1, OLED_8X16);
         OLED_ShowString(0, 16, "Question:", OLED_8X16);

@@ -19,6 +19,9 @@ extern float center_x, center_y; // 外部声明视觉解析的中心坐标
 
 
 // 函数声明
+void Serial_Control_Task(void);
+
+void Serial_Scan_Mode(void);
 void Serial_SendByte(uint8_t Byte);
 void Serial_SendArray(uint8_t *Array, uint16_t Length);
 void Serial_SendString(char *String);
