@@ -292,7 +292,7 @@ void Emm_V5_Origin_Modify_Params(uint8_t addr, bool svF, uint8_t o_mode, uint8_t
   cmd[16] =  (uint8_t)(sl_ms >> 8);     // 碰撞时间高8位
   cmd[17] =  (uint8_t)(sl_ms >> 0);     // 碰撞时间低8位
   cmd[18] =  potF;                      // 上电自动回零
-  cmd[19] =  0x9B;                      // 校验字节（原代码0x6B，按实际协议调整）
+  cmd[19] =  0x6B;                      // 校验字节（原代码0x6B，按实际协议调整）
   
   // 发送命令
   usart_SendCmd(cmd, 20);

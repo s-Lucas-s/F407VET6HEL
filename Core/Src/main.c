@@ -21,11 +21,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "MyI2C.h"
+#include "jy901.h"
 #include "stm32F4xx_hal.h"
 #include "sys.h"
 #include <stdbool.h>
-#include "jy901.h"
-#include "MyI2C.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,10 +56,11 @@ UART_HandleTypeDef huart6;
 /* USER CODE BEGIN PV */
 JY901_Driver *jy901;
 bool Stop_flag = 0;
-bool Power_on_flag = 0;// 第二题的全局变量，用于控制系统是否上电，只有当它为1时才会处理串口数据
+bool Power_on_flag = 0; // 第二题的全局变量，用于控制系统是否上电，只有当它为1时才会处理串口数据
 int8_t Questionx = 0;
-float ROLL,YAW,PITCH;
+float ROLL, YAW, PITCH;
 uint8_t SCAN = 1;
+volatile uint8_t keyValue = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -118,20 +119,21 @@ int main(void)
   MX_I2C1_Init();
   MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim2);
-  __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
-  __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
-  __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
-  PID_Init();
-  OLED_Init();
-  // jy901 = JY901_Create(0x50, GPIOB, GPIO_PIN_8, GPIOB, GPIO_PIN_9);
-  // jy901->fun->Init(jy901);
-  Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
-  OLED_ShowString(0, 0, "Hello!", OLED_8X16);
-  OLED_Update();
-  HAL_Delay(500);
-  OLED_Clear();
-  OLED_Update();
+    HAL_Delay(500);
+    PID_Init();
+    OLED_Init();
+    // jy901 = JY901_Create(0x50, GPIOB, GPIO_PIN_8, GPIOB, GPIO_PIN_9);
+    // jy901->fun->Init(jy901);
+    Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&RESET_KEY, 1);
+    OLED_ShowString(0, 0, "Hello!", OLED_8X16);
+    OLED_Update();
+    HAL_TIM_Base_Start_IT(&htim2);
+    __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+    __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
+    __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
+    HAL_Delay(500);
+    OLED_Clear();
+    OLED_Update();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -141,48 +143,45 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    //空指针保护，防止驱动创建失败死机
-  //  if(jy901 == NULL)
-  //   {
-  //       OLED_ShowString(0,0,"JY901 ERR",OLED_8X16);
-  //       OLED_Update();
-  //       HAL_Delay(100);
-  //       continue;
-  //   }
-  //   // 1. 读取JY901姿态数据
-  //   jy901->fun->ROLL_GET(jy901);  // 读取横滚角
-  //   jy901->fun->PITCH_GET(jy901); // 可选：读取俯仰角
-  //   jy901->fun->YAW_GET(jy901);   // 可选：读取偏航角
-    uint8_t keyValue = 0;
+        // 空指针保护，防止驱动创建失败死机
+        //  if(jy901 == NULL)
+        //   {
+        //       OLED_ShowString(0,0,"JY901 ERR",OLED_8X16);
+        //       OLED_Update();
+        //       HAL_Delay(100);
+        //       continue;
+        //   }
+        //   // 1. 读取JY901姿态数据
+        //   jy901->fun->ROLL_GET(jy901);  // 读取横滚角
+        //   jy901->fun->PITCH_GET(jy901); // 可选：读取俯仰角
+        //   jy901->fun->YAW_GET(jy901);   // 可选：读取偏航角
 
     keyValue = Key_GetCode();
 
     if (keyValue == 1)
     {
-      Questionx++;
-      if (Questionx > 4)
-      {
-          Questionx = 1;
-      }
-    }
-    else if (keyValue == 2)
-    {
-      Stop_flag = !Stop_flag;
-    }
-    else if (keyValue == 3)
-    {
-       SCAN++;
-       if(SCAN > 2)
-       {
-           SCAN = 1;
-       }
-    }
+        Questionx++;
+        if (Questionx > 4)
+        {
+            Questionx = 1;
+        }
+        }
+        else if (keyValue == 2)
+        {
+            Stop_flag = !Stop_flag;
+        }
+        else if (keyValue == 3)
+        {
+            SCAN++;
+            if (SCAN > 2)
+            {
+                SCAN = 1;
+            }
+        }
 
         Serial_Control_Task(); // 根据标志位自动选择 扫描 / PID，不依赖串口接收
         OLED_ShowString(0, 0, "Stop:", OLED_8X16);
         OLED_ShowNum(48, 0, Stop_flag, 1, OLED_8X16);
-        OLED_ShowString(0, 16, "Question:", OLED_8X16);
-        OLED_ShowNum(72, 16, Questionx, 1, OLED_8X16);
         OLED_ShowString(0, 16, "Question:", OLED_8X16);
         OLED_ShowNum(72, 16, Questionx, 1, OLED_8X16);
         OLED_Update();
@@ -476,7 +475,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : K1_Pin */
   GPIO_InitStruct.Pin = K1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(K1_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : KEY2_Pin */

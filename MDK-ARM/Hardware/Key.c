@@ -1,6 +1,6 @@
 #include "Key.h"
 
-static unsigned char Key_Code = 0;
+static volatile unsigned char Key_Code = 0;
 
 /**
  * @brief 外部调用函数：获取非连续键值（松手后返回一次）
@@ -8,7 +8,7 @@ static unsigned char Key_Code = 0;
  */
 unsigned char Key_GetCode(void)
 {
-    unsigned char TempCode = 0;
+    volatile unsigned char TempCode = 0;
     TempCode = Key_Code;
     Key_Code = 0;  // 读取后清零，确保只返回一次
     return TempCode;
@@ -23,10 +23,8 @@ unsigned char Key_GetCode(void)
   */
 unsigned char Key_Get(void)
 {
-    unsigned char CurrentKey = 0;  // 默认无按键
-    
-    // 读取引脚电平：低电平代表按键按下（上拉输入模式）
-    // F4用HAL_GPIO_ReadPin替代GPIO_ReadInputDataBit，返回GPIO_PIN_RESET/GPIO_PIN_SET
+    volatile unsigned char CurrentKey = 0; // 默认无按键
+
     if (HAL_GPIO_ReadPin(KEY1_GPIO_Port, KEY1_Pin) == GPIO_PIN_RESET)
     {
         CurrentKey = 1;  // KEY1按下
@@ -53,8 +51,8 @@ unsigned char Key_Get(void)
 void Key_LoopDetect(void)
 {
     static unsigned char LastState = 0;  // 静态变量：存储上一次按键状态
-    unsigned char NowState = 0;          // 当前按键状态
-    
+    volatile unsigned char NowState = 0;  // 当前按键状态
+
     NowState = Key_Get();
     
     // 松手检测：上一状态为按下，当前状态为松开 → 触发键码更新
@@ -70,7 +68,7 @@ void Key_LoopDetect(void)
     {
         Key_Code = 3;  // K1松手
     }
-    
+
     // 更新上一状态
     LastState = NowState;
 }
