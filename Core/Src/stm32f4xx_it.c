@@ -62,6 +62,8 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart6;
+
+extern bool start_search_flag;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -212,14 +214,8 @@ void TIM2_IRQHandler(void)
   /* USER CODE BEGIN TIM2_IRQn 0 */
     static uint16_t Key_LoopTime = 0;
     static uint16_t Attitude_LoopTime = 0;
-    static uint16_t Search_LoopTime = 0;
     Key_LoopTime++;
     Attitude_LoopTime++;
-    if (GetSet_start_search(false, false))
-    {
-        Search_LoopTime++;
-    }
-
 
     if (Key_LoopTime >= 10) // 100Hz
     {
@@ -233,11 +229,6 @@ void TIM2_IRQHandler(void)
         GetAttitudeData();
     }
 
-    if (GetSet_start_search(false, false) && Search_LoopTime >= 20) // 50Hz
-    {
-        Search_LoopTime = 0;
-        Automatic_Search_Control(Get_if_searched());
-    }
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */

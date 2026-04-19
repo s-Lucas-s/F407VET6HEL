@@ -4,7 +4,6 @@
 // 1. 替换标准库头文件为HAL库头文件
 #include <stdint.h>   // 替代stdbool.h，HAL库标准数据类型
 #include <stdbool.h>  // 保留bool类型，兼容原代码
-#include "main.h"     // HAL库主头文件（自动包含usart.h）
 
 /**********************************************************
 ***	Emm_V5.0步进闭环控制例程
@@ -28,9 +27,6 @@ typedef enum {
     S_State = 15, /* 读取系统状态参数 */
     S_ORG   = 16, /* 读取正在回零/回零失败状态标志位 */
 } SysParams_t;
-
-// 新增：USART句柄定义（必须和CubeMX生成的huart2一致！）
-extern UART_HandleTypeDef huart2;
 
 // 新增：串口发送函数声明（替代原usart_SendCmd，HAL库版）
 // void usart_SendCmd(uint8_t *cmd, uint8_t len);  // 移除，统一在usart.h中声明

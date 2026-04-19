@@ -58,9 +58,9 @@ bool Power_on_flag = 0;
 int8_t Questionx = 0;
 GyroData_t s_GyroData = {0};
 
-/* USER CODE END PV */
+    /* USER CODE END PV */
 
-/* Private function prototypes -----------------------------------------------*/
+    /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
@@ -163,7 +163,7 @@ int main(void)
             Emm_V5_Stop_Now(0, true);
         }
 
-        OLED_ShowString(0, 0, "Mode:", OLED_8X16);
+        OLED_ShowString(0, 0, "Question:", OLED_8X16);
         OLED_ShowNum(48, 0, Questionx, 1, OLED_8X16);
         OLED_ShowString(0, 16, "Stop:", OLED_8X16);
         OLED_ShowNum(48, 16, Start_flag, 1, OLED_8X16);
