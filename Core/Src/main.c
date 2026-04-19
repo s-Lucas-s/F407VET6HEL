@@ -122,6 +122,7 @@ int main(void)
   __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
   __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
   __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
+  HAL_Delay(500);
   PID_Init();
   OLED_Init();
   // jy901 = JY901_Create(0x50, GPIOB, GPIO_PIN_8, GPIOB, GPIO_PIN_9);
