@@ -152,7 +152,7 @@ void OLED_Init(void)
     OLED_WriteCommand(0x80); // 0x00~0xFF
 
     OLED_WriteCommand(0xA8); // 设置多路复用率
-    OLED_WriteCommand(0x3F); // 0x0E~0x3F
+    OLED_WriteCommand(0x1F); // 0x0E~0x3F
 
     OLED_WriteCommand(0xD3); // 设置显示偏移
     OLED_WriteCommand(0x00); // 0x00~0x7F
@@ -164,7 +164,7 @@ void OLED_Init(void)
     OLED_WriteCommand(0xC8); // 设置上下方向，0xC8正常，0xC0上下反置
 
     OLED_WriteCommand(0xDA); // 设置COM引脚硬件配置
-    OLED_WriteCommand(0x12);
+    OLED_WriteCommand(0x02);
 
     OLED_WriteCommand(0x81); // 设置对比度
     OLED_WriteCommand(0xCF); // 0x00~0xFF

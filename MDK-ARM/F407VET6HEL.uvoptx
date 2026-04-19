@@ -112,6 +112,19 @@
         <tDlgDll />
         <tDlgPa />
         <tIfile />
+        <bSchkAxf>0</bSchkAxf>
+        <bTchkAxf>0</bTchkAxf>
+        <nTsel>6</nTsel>
+        <sDll></sDll>
+        <sDllPa></sDllPa>
+        <sDlgDll></sDlgDll>
+        <sDlgPa></sDlgPa>
+        <sIfile></sIfile>
+        <tDll></tDll>
+        <tDllPa></tDllPa>
+        <tDlgDll></tDlgDll>
+        <tDlgPa></tDlgPa>
+        <tIfile></tIfile>
         <pMon>STLink\ST-LINKIII-KEIL_SWO.dll</pMon>
       </DebugOpt>
       <TargetDriverDllRegistry>
@@ -143,7 +156,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>ST-LINKIII-KEIL_SWO</Key>
-          <Name>-U37FF71064E573436DEED1243 -O2254 -SF10000 -C0 -A0 -I0 -HNlocalhost -HP7184 -P2 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(0) -TO131090 -TC10000000 -TP21 -TDS8004 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO7 -FD20000000 -FC800 -FN1 -FF0STM32F4xx_512.FLM -FS0800C000 -FL074000 -FP0($$Device:STM32F407VETx$CMSIS\Flash\STM32F4xx_512.FLM)</Name>
+          <Name>-U37FF71064E573436DEED1243 -O2254 -SF10000 -C0 -A0 -I0 -HNlocalhost -HP7184 -P2 -N00("ARM CoreSight SW-DP") -D00(2BA01477) -L00(0) -TO131090 -TC10000000 -TP21 -TDS8007 -TDT0 -TDC1F -TIEFFFFFFFF -TIP8 -FO7 -FD20000000 -FC800 -FN1 -FF0STM32F4xx_512.FLM -FS0800C000 -FL074000 -FP0($$Device:STM32F407VETx$CMSIS\Flash\STM32F4xx_512.FLM)</Name>
         </SetRegEntry>
       </TargetDriverDllRegistry>
       <Breakpoint>
@@ -166,34 +179,34 @@
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>75</LineNumber>
+          <LineNumber>133</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134276068</Address>
+          <Address>134282072</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\keil0\kile\32\浠ｇ爜鏂囦欢\浜戝彴\5\F407VET6HEL\MDK-ARM\Hardware\Key.c</Filename>
-          <ExecCommand />
-          <Expression>\\F407VET6HEL_kile5\Hardware/Key.c\75</Expression>
+          <Filename>D:\keil0\kile\32\浠ｇ爜鏂囦欢\浜戝彴\5\F407VET6HEL\Core\Src\main.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\F407VET6HEL_kile5\../Core/Src/main.c\133</Expression>
         </Bp>
         <Bp>
           <Number>2</Number>
           <Type>0</Type>
-          <LineNumber>58</LineNumber>
+          <LineNumber>130</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134276010</Address>
+          <Address>134282046</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>D:\keil0\kile\32\浠ｇ爜鏂囦欢\浜戝彴\5\F407VET6HEL\MDK-ARM\Hardware\Key.c</Filename>
-          <ExecCommand />
-          <Expression>\\F407VET6HEL_kile5\Hardware/Key.c\58</Expression>
+          <Filename>D:\keil0\kile\32\浠ｇ爜鏂囦欢\浜戝彴\5\F407VET6HEL\Core\Src\main.c</Filename>
+          <ExecCommand></ExecCommand>
+          <Expression>\\F407VET6HEL_kile5\../Core/Src/main.c\130</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -206,11 +219,6 @@
           <count>1</count>
           <WinNumber>1</WinNumber>
           <ItemText>Power_on_flag</ItemText>
-        </Ww>
-        <Ww>
-          <count>2</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>NowState</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
@@ -257,6 +265,7 @@
       <pMultCmdsp />
       <DebugDescription>
         <Enable>1</Enable>
+        <EnableFlashSeq>0</EnableFlashSeq>
         <EnableLog>0</EnableLog>
         <Protocol>2</Protocol>
         <DbgClock>10000000</DbgClock>

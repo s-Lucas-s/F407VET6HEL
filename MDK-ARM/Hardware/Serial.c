@@ -71,6 +71,20 @@ void Serial_Scan_Mode(void)
 // 独立执行：根据标志位自动选择 扫描 / PID，不依赖串口接收
 void Serial_Control_Task(void)
 {
+    // 如果系统还没启动（没按下按键使得Stop_flag=1），或者还没有给视觉下发考题（Power_on_flag=0）
+    if (Stop_flag == 0 || Power_on_flag == 0)
+    {
+        // 保持两个电机静止，不执行任何业务逻辑
+        Emm_V5_Vel_Control(1, 0, 0, 0, 0); 
+        Emm_V5_Vel_Control(2, 0, 0, 0, 0); 
+        
+        // 持续刷新最后接收时间
+        // 防止启动瞬间系统由于经过了300ms直接判定为超时，导致一开始就疯狂进入扫描模式乱转
+        Last_Valid_Rx_Time = HAL_GetTick(); 
+        
+        return;
+    }
+
     // 如果超过 300ms 没有收到有效的视觉数据包，自动切换回扫描模式
     // 因为这里是在主循环 while(1) 中不断轮询，所以即使在没接线、串口中断不触发的情况下也能有效判断超时！
     if (HAL_GetTick() - Last_Valid_Rx_Time > 300)
@@ -134,7 +148,7 @@ void handle_USART_BasicQuestion1(void)
             Last_Valid_Rx_Time = HAL_GetTick(); // 刷新有效数据包时间，打断超时
 
             // 2. 立刻给视觉发送应答包，通知视觉数据已收到，可以继续发送下一帧了
-            uint8_t ack_data = 1;
+            uint8_t ack_data = 6; // 任意非0数据，代表ACK
             Serial_SendPacket(0xA5, 0x5A, &ack_data, 1);
 
             // 【移除此处的电机控制代码】由于外面已经有了 Serial_Motor_Control() 轮询，这里只需要专心接收数据即可，避免重复调用带来不稳定性。
