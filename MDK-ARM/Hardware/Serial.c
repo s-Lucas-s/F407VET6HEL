@@ -13,7 +13,7 @@ uint8_t rx_data; // 接收数据缓冲区
 const uint8_t RESET_KEY = 0xFF; // 定义一个全局变量，用于接收串口命令，控制系统重置
 
 // 外部变量声明
-extern float Target_Vertical_x, Target_Vertical_y, target_x, target_y;
+extern float  target_x, target_y;
 extern int8_t Questionx;
 extern bool Power_on_flag, Stop_flag;
 
@@ -75,22 +75,22 @@ void Serial_Control_Task(void)
     if (Stop_flag == 0 || Power_on_flag == 0)
     {
         // 保持两个电机静止，不执行任何业务逻辑
-        Emm_V5_Vel_Control(1, 0, 0, 0, 0); 
-        Emm_V5_Vel_Control(2, 0, 0, 0, 0); 
-        
+        Emm_V5_Vel_Control(1, 0, 0, 0, 0);
+        Emm_V5_Vel_Control(2, 0, 0, 0, 0);
+
         // 持续刷新最后接收时间
         // 防止启动瞬间系统由于经过了300ms直接判定为超时，导致一开始就疯狂进入扫描模式乱转
-        Last_Valid_Rx_Time = HAL_GetTick(); 
-        
+        Last_Valid_Rx_Time = HAL_GetTick();
+
         return;
     }
 
     // 如果超过 300ms 没有收到有效的视觉数据包，自动切换回扫描模式
     // 因为这里是在主循环 while(1) 中不断轮询，所以即使在没接线、串口中断不触发的情况下也能有效判断超时！
-    if (HAL_GetTick() - Last_Valid_Rx_Time > 300)
-    {
-        Scan_Mode_Flag = 1;
-    }
+    // if (HAL_GetTick() - Last_Valid_Rx_Time > 300)
+    // {
+    //     Scan_Mode_Flag = 1;
+    // }
 
     if (Scan_Mode_Flag == 1)
     {
@@ -99,8 +99,8 @@ void Serial_Control_Task(void)
     }
     else
     {
-        // 收到有效数据包 → 执行PID跟踪
-        PID_Control((int32_t)center_x, (int32_t)center_y);
+        // 收到有效数据包 → 执行PID跟踪，直接传入float即可，无需强转
+        PID_Control(center_x, center_y);
     }
 }
 
@@ -183,13 +183,6 @@ void handle_USART_BasicQuestion1(void)
             RxState = 0;
             RxCounter = 0;
             RxArrayCounter = 0;
-        }
-        else
-        {
-            Target_Vertical_x = 0;
-            Target_Vertical_y = 0;
-            target_x = center_x;
-            target_y = center_y;
         }
     }
     else

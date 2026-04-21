@@ -1,4 +1,4 @@
-﻿#include "PID.h"
+#include "PID.h"
 #include "Emm_V5.h"
 #include <math.h>
 #include "stm32F4xx_hal.h"
@@ -10,8 +10,8 @@ extern bool Stop_flag;            // 停机标志
 #define MAX_SPEED 1800        // 电机最大输出限制，保护电机与机械结构
 #define PI 3.1415926f          // 圆周率，用于圆形轨迹计算，备用参数
 
-#define LASER_FIX_X    160.0f    // 你赛前标定的激光坐标值
-#define LASER_FIX_Y    120.0f
+#define LASER_FIX_X 320.0f // 你赛前标定的激光坐标值
+#define LASER_FIX_Y 240.0f
 
 #define Get_square(x) ((x) * (x)) // 计算平方
 #define LIMIT_VALUE_SYMMETRIC(value, max_val) \
@@ -46,15 +46,8 @@ typedef struct parameter_pid
 pid_t Position_PID_x;
 pid_t Position_PID_y;
 
-/************************ 轨迹与前馈控制参数 ************************/
-float Target_Vertical_x = 0.0f; // X轴目标运动速度（像素/帧）
-float Target_Vertical_y = 0.0f; // Y轴目标运动速度（像素/帧）
-
 float target_x = 0.0f; // X轴目标坐标
 float target_y = 0.0f; // Y轴目标坐标
-
-const int32_t Kf_x = 0; // X轴前馈系数
-const int32_t Kf_y = 0; // Y轴前馈系数
 
 /************************ PID内部静态变量 ************************/
 static float xerr_last = 0.0f;
@@ -62,7 +55,8 @@ static float yerr_last = 0.0f;
 static uint32_t time_count_last = 0;
 static float integral_x = 0.0f;
 static float integral_y = 0.0f;
-
+float err_x = 0.0f;
+float err_y = 0.0f;
 /************************ 工具函数 ************************/
 static inline int32_t LimitOutput(int32_t value)
 {
@@ -78,41 +72,39 @@ int32_t Position_PID_Control(Dimension_t Dimension, float err, uint32_t dt)
         dt = 1;
     }
 
-    if (Dimension == x)
+    // 将 dt 转换为秒
+    float dt_s = dt / 1000.0f;
+
+    if (Dimension == x) // PID_X算法
     {
-        integral_x += err;
+        integral_x += err * dt_s;
         LIMIT_VALUE_SYMMETRIC(integral_x, Integral_MAX);
-        pid_out = Position_PID_x.kp * err + Position_PID_x.ki * integral_x + Position_PID_x.kd * (err - xerr_last) / dt;
+        pid_out = Position_PID_x.kp * err + Position_PID_x.ki * integral_x + Position_PID_x.kd * (err - xerr_last) / dt_s;
     }
-    else
+    else // PID_Y算法
     {
-        integral_y += err;
+        integral_y += err * dt_s;
         LIMIT_VALUE_SYMMETRIC(integral_y, Integral_MAX);
-        pid_out = Position_PID_y.kp * err + Position_PID_y.ki * integral_y + Position_PID_y.kd * (err - yerr_last) / dt;
+        pid_out = Position_PID_y.kp * err + Position_PID_y.ki * integral_y + Position_PID_y.kd * (err - yerr_last) / dt_s;
     }
 
     LIMIT_VALUE_SYMMETRIC(pid_out, MAX_SPEED);
-    return (int32_t)(pid_out + 0.5f);
+    return (int32_t)(pid_out ); // 四舍五入取整
 }
 
 void PID_Init(void)
 {
-    Position_PID_x.kp = 2.5f;
+    Position_PID_x.kp = -0.08f;
     Position_PID_x.ki = 0.0f;
     Position_PID_x.kd = 0.0f;
 
-    Position_PID_y.kp = 2.5f;
+    Position_PID_y.kp = -0.8f;
     Position_PID_y.ki = 0.0f;
     Position_PID_y.kd = 0.0f;
 }
 
-void Trajectory_Update(uint32_t dt)
-{
-    target_x += Target_Vertical_x * dt / 1000.0f;
-    target_y += Target_Vertical_y * dt / 1000.0f;
-}
 
-void PID_Control(float target_x, float target_y)
+void PID_Control(float in_target_x, float in_target_y)
 {
     int32_t x_out;
     int32_t y_out;
@@ -135,35 +127,37 @@ void PID_Control(float target_x, float target_y)
         xerr_last = 0.0f;
         yerr_last = 0.0f;
         integral_x = 0.0f;
-        integral_y = 0.0f;
-        target_x = 0.0f;
+        integral_y = 1.0f;
+        target_x = 0.0f; // 清理全局变量
         target_y = 0.0f;
         return;
     }
 
-    float err_x = LASER_FIX_X - target_x;
-    float err_y = LASER_FIX_Y - target_y;
+    err_x = LASER_FIX_X - in_target_x;
+    err_y = LASER_FIX_Y - in_target_y;
+
+    // 添加死区限制，防止摄像头像素误差引起的电机高频抖动（根据实际情况可调整此值，当前设定2个像素）
+    // if (fabsf(err_x) < 2.0f)
+    //     err_x = 0.0f;
+    // if (fabsf(err_y) < 2.0f)
+    //     err_y = 0.0f;
 
     int32_t pid_x = Position_PID_Control(x, err_x, interval_time);
     int32_t pid_y = Position_PID_Control(y, err_y, interval_time);
 
-    int32_t feed_x = (int32_t)(Target_Vertical_x * Kf_x);
-    int32_t feed_y = (int32_t)(Target_Vertical_y * Kf_y);
-
-    x_out = pid_x + feed_x;
-    y_out = pid_y + feed_y;
-
+    x_out = pid_x ;
+    y_out = pid_y ;
     // 输出限幅，保护电机
     LIMIT_VALUE_SYMMETRIC(x_out, MAX_SPEED);
     LIMIT_VALUE_SYMMETRIC(y_out, MAX_SPEED);
 
     if (x_out >= 0)
     {
-        Emm_V5_Vel_Control(1, 1, (uint16_t)x_out, 0, 0);
+        Emm_V5_Vel_Control(2, 1, (uint16_t)x_out, 0, 0);
     }
     else
     {
-        Emm_V5_Vel_Control(1, 0, (uint16_t)(-x_out), 0, 0);
+        Emm_V5_Vel_Control(2, 0, (uint16_t)(-x_out), 0, 0);
     }
 
    //Delay_us(1000);
@@ -171,14 +165,13 @@ void PID_Control(float target_x, float target_y)
 
     if (y_out >= 0)
     {
-        Emm_V5_Vel_Control(2, 0, (uint16_t)y_out, 0, 0);
+        Emm_V5_Vel_Control(1, 0, (uint16_t)y_out, 0, 0);
     }
     else
     {
-        Emm_V5_Vel_Control(2, 1, (uint16_t)(-y_out), 0, 0);
+        Emm_V5_Vel_Control(1, 1, (uint16_t)(-y_out), 0, 0);
     }
 
     xerr_last = err_x;
     yerr_last = err_y;
 }
-

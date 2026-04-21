@@ -152,7 +152,7 @@ void OLED_Init(void)
     OLED_WriteCommand(0x80); // 0x00~0xFF
 
     OLED_WriteCommand(0xA8); // 设置多路复用率
-    OLED_WriteCommand(0x1F); // 0x0E~0x3F
+    OLED_WriteCommand(0x3F); // 0x0E~0x3F
 
     OLED_WriteCommand(0xD3); // 设置显示偏移
     OLED_WriteCommand(0x00); // 0x00~0x7F
@@ -164,7 +164,7 @@ void OLED_Init(void)
     OLED_WriteCommand(0xC8); // 设置上下方向，0xC8正常，0xC0上下反置
 
     OLED_WriteCommand(0xDA); // 设置COM引脚硬件配置
-    OLED_WriteCommand(0x02);
+    OLED_WriteCommand(0x12);
 
     OLED_WriteCommand(0x81); // 设置对比度
     OLED_WriteCommand(0xCF); // 0x00~0xFF
@@ -201,7 +201,7 @@ void OLED_SetCursor(uint8_t Page, uint8_t X)
     /*因为1.3寸的OLED驱动芯片（SH1106）有132列*/
     /*屏幕的起始列接在了第2列，而不是第0列*/
     /*所以需要将X加2，才能正常显示*/
-    //	X += 2;
+    	X += 2;
 
     /*通过指令设置页地址和列地址*/
     OLED_WriteCommand(0xB0 | Page);              // 设置页位置

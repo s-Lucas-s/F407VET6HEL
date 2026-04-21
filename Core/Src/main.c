@@ -179,21 +179,25 @@ int main(void)
             }
         }
 
-        Serial_Control_Task(); // 根据标志位自动选择 扫描 / PID，不依赖串口接收
-        OLED_ShowString(0, 0, "Stop:", OLED_8X16);
-        OLED_ShowNum(48, 0, Stop_flag, 1, OLED_8X16);
-        OLED_ShowString(0, 16, "Question:", OLED_8X16);
-        OLED_ShowNum(72, 16, Questionx, 1, OLED_8X16);
-        OLED_Update();
-        // OLED_ShowString(0, 0, "ROLL:", OLED_8X16);
-        // OLED_ShowFloatNum(48, 0, jy901->var.roll, 1, 3, OLED_8X16);
-        // OLED_ShowString(0, 16, "PITCH:", OLED_8X16);
-        // OLED_ShowFloatNum(48, 16, jy901->var.pitch, 1, 3, OLED_8X16);
-        // OLED_ShowString(0, 32, "YAW:", OLED_8X16);
-        // OLED_ShowFloatNum(48, 32, jy901->var.yaw, 1, 3, OLED_8X16);
-        // OLED_Update();
-        HAL_Delay(10);
-    }
+    Serial_Control_Task(); // 根据标志位自动选择 扫描 / PID，不依赖串口接收
+    OLED_ShowString(0, 0, "Stop:", OLED_8X16);
+    OLED_ShowNum(48, 0, Stop_flag, 1, OLED_8X16);
+    OLED_ShowString(0, 16, "Question:", OLED_8X16);
+    OLED_ShowNum(72, 16, Questionx, 1, OLED_8X16);
+    OLED_ShowString(0, 32, "Y:", OLED_8X16);
+    OLED_ShowFloatNum(16, 32, err_y, 4, 2, OLED_8X16);
+
+    OLED_ShowString(0, 48, "Y:", OLED_8X16);
+    OLED_ShowFloatNum(16, 48, center_y, 4, 2, OLED_8X16);
+    // OLED_ShowString(0, 0, "ROLL:", OLED_8X16);
+    // OLED_ShowFloatNum(48, 0, jy901->var.roll, 1, 3, OLED_8X16);
+    // OLED_ShowString(0, 16, "PITCH:", OLED_8X16);
+    // OLED_ShowFloatNum(48, 16, jy901->var.pitch, 1, 3, OLED_8X16);
+    // OLED_ShowString(0, 32, "YAW:", OLED_8X16);
+    // OLED_ShowFloatNum(48, 32, jy901->var.yaw, 1, 3, OLED_8X16);
+    OLED_Update();
+    HAL_Delay(10);
+  }
   /* USER CODE END 3 */
 }
 
