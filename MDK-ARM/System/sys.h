@@ -16,6 +16,7 @@
 #include "IAP.h"
 #include "wit_c_sdk.h"
 #include "gyroscope.h"
+#include "Laser.h"
 
 /* ————————————变量———————————— */
 extern bool Start_flag;

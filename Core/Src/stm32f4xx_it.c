@@ -62,8 +62,6 @@ extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart6;
-
-extern bool start_search_flag;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -284,7 +282,8 @@ void USART1_IRQHandler(void)
   */
 void USART2_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART2_IRQn 0 */
+    /* USER CODE BEGIN USART2_IRQn 0 */
+    //云台串口
     Serial_ProcessRx((uint8_t)(huart2.Instance->DR & 0xFF));
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);

@@ -37,7 +37,7 @@ unsigned char Key_Get(void)
     {
         CurrentKey = 2;  // KEY2按下
     }
-    else if (HAL_GPIO_ReadPin(K1_GPIO_Port, K1_Pin) == GPIO_PIN_RESET)
+    else if (HAL_GPIO_ReadPin(KEY3_GPIO_Port, KEY3_Pin) == GPIO_PIN_RESET)
     {
         CurrentKey = 3; // K1按下
     }
