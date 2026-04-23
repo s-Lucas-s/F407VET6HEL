@@ -58,9 +58,9 @@ bool Power_on_flag = 0;
 int8_t Questionx = 0;
 GyroData_t s_GyroData = {0};
 
-    /* USER CODE END PV */
+/* USER CODE END PV */
 
-    /* Private function prototypes -----------------------------------------------*/
+/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
@@ -118,14 +118,17 @@ int main(void)
   MX_USART6_UART_Init();
   MX_UART4_Init();
   /* USER CODE BEGIN 2 */
+    Laser_Init();
     HAL_Delay(100);
     OLED_Init();
     OLED_ShowString(0, 0, "Hello!", OLED_8X16);
     OLED_Update();
+    Laser_Init();
     HAL_Delay(500);
 
     HAL_TIM_Base_Start_IT(&htim2);
     __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
+    __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
     __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
     __HAL_UART_ENABLE_IT(&huart4, UART_IT_RXNE);
     __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
@@ -164,12 +167,11 @@ int main(void)
         }
 
         OLED_ShowString(0, 0, "Question:", OLED_8X16);
-        OLED_ShowNum(48, 0, Questionx, 1, OLED_8X16);
+        OLED_ShowNum(71, 0, Questionx, 1, OLED_8X16);
         OLED_ShowString(0, 16, "Stop:", OLED_8X16);
         OLED_ShowNum(48, 16, Start_flag, 1, OLED_8X16);
-        OLED_ShowFloatNum(55, 16, s_GyroData.fAngle[0], 3, 3, OLED_8X16);
         OLED_Update();
-
+        //OLED_ShowFloatNum(55, 16, s_GyroData.fAngle[0], 3, 3, OLED_8X16);
         HAL_Delay(10);
     }
   /* USER CODE END 3 */
@@ -192,11 +194,12 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
   RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
@@ -484,20 +487,14 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LASER_GPIO_Port, LASER_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : K1_Pin */
-  GPIO_InitStruct.Pin = K1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(K1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : LED_Pin */
-  GPIO_InitStruct.Pin = LED_Pin;
+  /*Configure GPIO pin : LASER_Pin */
+  GPIO_InitStruct.Pin = LASER_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-  HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LASER_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : KEY2_Pin */
   GPIO_InitStruct.Pin = KEY2_Pin;
@@ -505,11 +502,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(KEY2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : KEY1_Pin */
-  GPIO_InitStruct.Pin = KEY1_Pin;
+  /*Configure GPIO pins : KEY1_Pin KEY3_Pin */
+  GPIO_InitStruct.Pin = KEY1_Pin|KEY3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(KEY1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

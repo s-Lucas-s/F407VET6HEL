@@ -2,6 +2,7 @@
 #include "Emm_V5.h"
 #include "OLED.h"
 #include "PID.h"
+#include "laser.h"
 #include "stm32f4xx_hal.h"
 #include <stdarg.h>
 #include <stdbool.h>
@@ -36,7 +37,6 @@ void handle_USART_BasicQuestion2(uint8_t com_data)
     static UnionFloat_t RxBuffer = {0}; // 定义一个6个成员的数组，可以存放6个数据，刚好放下一个数据包。
     static u8 RxState = 0;              // 接收状态，判断程序应该接收第一个帧头、第二个帧头、数据或帧尾。
     static bool Zeroed = false;         // 搜索开始标志，防止重复启动搜索
-
     if (!Zeroed)
     {
         if (RxState == 0 && com_data == 0xB6) // 0xB6帧头
@@ -49,8 +49,10 @@ void handle_USART_BasicQuestion2(uint8_t com_data)
         }
         else if (RxState == 2 && com_data == 0x6B)
         {
-            Zeroed = true; // 收到新数据包，重置搜索标志
-            Emm_V5_Stop_Now(0, true);
+            Zeroed = true;
+            Emm_V5_Stop_Now(1, false);
+            Emm_V5_Stop_Now(2, false);
+            RxState = 0;
         }
     }
     else
@@ -83,11 +85,11 @@ void handle_USART_BasicQuestion2(uint8_t com_data)
                     RxArrayCounter = 0;
                     RxState = 0;
 
-                    // OLED_ShowFloatNum(0, 32, coordinate_x, 3, 3, OLED_8X16);
-                    // OLED_ShowFloatNum(0, 48, coordinate_y, 3, 3, OLED_8X16);
-                    // OLED_Update();
+                    OLED_ShowFloatNum(0, 32, coordinate_x, 3, 3, OLED_8X16);
+                    OLED_ShowFloatNum(0, 48, coordinate_y, 3, 3, OLED_8X16);
+                    OLED_Update();
 
-                    PID_Control(coordinate_x, coordinate_y);
+                    // PID_Control(coordinate_x, coordinate_y);
                     return;
                 }
                 else
@@ -242,8 +244,8 @@ void Serial_SendPacket(uint8_t packet_header, uint8_t packet_tail, uint8_t *Arra
     Serial_SendByte(packet_tail);
 }
 
-#define search_speed_x 800
-#define search_speed_y 800
+#define search_speed_x 5
+#define search_speed_y 0
 // 提供给外部调用的接收处理函数
 void Serial_ProcessRx(uint8_t com_data)
 {
@@ -252,13 +254,17 @@ void Serial_ProcessRx(uint8_t com_data)
         if (Start_flag == 1)
         {
             Power_on_flag = 1;
-            Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&Questionx, 1);
             if (Questionx == 2)
             {
+                Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&Questionx, 1);
                 Target_Vertical_x = 0;
                 Target_Vertical_y = 0;
-                Emm_V5_Vel_Control(1, 0, search_speed_x, 0, 0);
-                Emm_V5_Vel_Control(2, 0, search_speed_y, 0, 0);
+                Emm_V5_Vel_Control(2, 0, search_speed_x, 0, 0);
+                // Emm_V5_Vel_Control(1, 0, search_speed_y, 0, 0);
+            }
+            else
+            {
+                Start_flag = 0;
             }
         }
         return;

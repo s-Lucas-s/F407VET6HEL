@@ -32,18 +32,26 @@ void usart_SendCmd(uint8_t *cmd, uint8_t len)
 {
     uint8_t i = 0;
 
-    if (cmd[0] == 1)
+    if (cmd[0] == 0)
     {
         for (i = 0; i < len; i++)
         {
             usart_SendByte(&huart1, cmd[i]);
+            usart_SendByte(&huart6, cmd[i]);
+        }
+    }
+    else if (cmd[0] == 1)
+    {
+        for (i = 0; i < len; i++)
+        {
+            usart_SendByte(&huart6, cmd[i]);
         }
     }
     else if (cmd[0] == 2)
     {
         for (i = 0; i < len; i++)
         {
-            usart_SendByte(&huart6, cmd[i]);
+            usart_SendByte(&huart1, cmd[i]);
         }
     }
 }
