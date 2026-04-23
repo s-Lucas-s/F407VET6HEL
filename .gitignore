@@ -27,3 +27,6 @@
 
 #STM32CubeIDE
 .project
+
+# STM32CubeMX
+/Drivers/CMSIS/Device

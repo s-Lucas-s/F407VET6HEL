@@ -102,13 +102,21 @@ PB10.Signal=USART3_TX
 PB11.Locked=true
 PB11.Mode=Asynchronous
 PB11.Signal=USART3_RX
+<<<<<<< HEAD
 PB14.GPIOParameters=GPIO_Speed,GPIO_PuPd,GPIO_Label
+=======
+PB14.GPIOParameters=GPIO_Label,GPIO_Speed,GPIO_PuPd
+>>>>>>> 5114d618b2d84ff13a9d3a2cf329bbf6d0aa69ea
 PB14.GPIO_Label=LASER
 PB14.GPIO_PuPd=GPIO_NOPULL
 PB14.GPIO_Speed=GPIO_SPEED_FREQ_LOW
 PB14.Locked=true
 PB14.Signal=GPIO_Output
+<<<<<<< HEAD
 PB15.GPIOParameters=GPIO_PuPd,GPIO_Label,GPIO_Mode
+=======
+PB15.GPIOParameters=GPIO_Label,GPIO_PuPd,GPIO_Mode
+>>>>>>> 5114d618b2d84ff13a9d3a2cf329bbf6d0aa69ea
 PB15.GPIO_Label=KEY2
 PB15.GPIO_Mode=GPIO_MODE_INPUT
 PB15.GPIO_PuPd=GPIO_PULLUP
@@ -132,13 +140,21 @@ PCC.PartNumber=STM32F407VGTx
 PCC.Series=STM32F4
 PCC.Temperature=25
 PCC.Vdd=3.3
+<<<<<<< HEAD
 PD10.GPIOParameters=GPIO_PuPd,GPIO_Label,GPIO_Mode
+=======
+PD10.GPIOParameters=GPIO_Label,GPIO_PuPd,GPIO_Mode
+>>>>>>> 5114d618b2d84ff13a9d3a2cf329bbf6d0aa69ea
 PD10.GPIO_Label=KEY3
 PD10.GPIO_Mode=GPIO_MODE_INPUT
 PD10.GPIO_PuPd=GPIO_PULLUP
 PD10.Locked=true
 PD10.Signal=GPIO_Input
+<<<<<<< HEAD
 PD8.GPIOParameters=GPIO_PuPd,GPIO_Label
+=======
+PD8.GPIOParameters=GPIO_Label,GPIO_PuPd
+>>>>>>> 5114d618b2d84ff13a9d3a2cf329bbf6d0aa69ea
 PD8.GPIO_Label=KEY1
 PD8.GPIO_PuPd=GPIO_PULLUP
 PD8.Locked=true

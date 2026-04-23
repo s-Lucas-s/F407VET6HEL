@@ -282,7 +282,11 @@ void USART1_IRQHandler(void)
   */
 void USART2_IRQHandler(void)
 {
+<<<<<<< HEAD
   /* USER CODE BEGIN USART2_IRQn 0 */
+=======
+    /* USER CODE BEGIN USART2_IRQn 0 */
+>>>>>>> 5114d618b2d84ff13a9d3a2cf329bbf6d0aa69ea
     //云台串口
     Serial_ProcessRx((uint8_t)(huart2.Instance->DR & 0xFF));
   /* USER CODE END USART2_IRQn 0 */
