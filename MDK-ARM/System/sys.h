@@ -27,7 +27,7 @@ extern bool Power_on_flag;
 // int i;
 
 /* —————————————宏————————————— */
-#define ABS(x)      ((x) >= 0 ? (x) : -(x))
+#define ABS(x)      ((x) >= 0 ? (x) : -(x)) // 绝对值宏定义
 #define Max_x_angle 180
 
 /*陀螺仪*/

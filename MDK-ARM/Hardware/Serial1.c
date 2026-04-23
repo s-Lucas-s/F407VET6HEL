@@ -1,5 +1,8 @@
 #include "Serial1.h"
 
+//芷乐写的上位机调参
+//使用vofa，通过蓝牙串口
+
 // ===================== 基础发送函数（不变） =====================
 void Serial1_SendByte(uint8_t Byte)
 {

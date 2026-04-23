@@ -215,12 +215,13 @@ void TIM2_IRQHandler(void)
     Key_LoopTime++;
     Attitude_LoopTime++;
 
+    //按键驱动
     if (Key_LoopTime >= 10) // 100Hz
     {
         Key_LoopTime = 0;
         Key_LoopDetect();
     }
-
+    //陀螺仪更新驱动
     if (Attitude_LoopTime >= 20) // 50Hz
     {
         Attitude_LoopTime = 0;
@@ -240,6 +241,7 @@ void TIM2_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
+  //步进电机1
     uint8_t ch;
     uint16_t i = 0;
 
@@ -298,7 +300,7 @@ void USART2_IRQHandler(void)
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
-
+    //蓝牙（无线烧录）
     uint8_t ch;
 
     if (__HAL_UART_GET_FLAG(&huart3, UART_FLAG_RXNE) != RESET)
@@ -325,7 +327,7 @@ void USART3_IRQHandler(void)
 void UART4_IRQHandler(void)
 {
   /* USER CODE BEGIN UART4_IRQn 0 */
-
+    //陀螺仪
     uint8_t ch;
 
     if (__HAL_UART_GET_FLAG(&huart4, UART_FLAG_RXNE) != RESET)
@@ -346,7 +348,7 @@ void UART4_IRQHandler(void)
 void USART6_IRQHandler(void)
 {
   /* USER CODE BEGIN USART6_IRQn 0 */
-
+  //步进电机2
     uint8_t ch;
     uint16_t i = 0;
 

@@ -89,6 +89,7 @@ void PID_Init(void)
 
 #define LIMIT_SYMMETRIC(value) LIMIT_VALUE_SYMMETRIC(value, Integral_MAX) // 积分专用限幅
 
+//积分分离宏：当误差较小时才进行积分，防止大误差时积分过多导致超调和震荡
 #define INTEGRAL_SEPARATION(integral_err, err)                 \
     do                                                         \
     {                                                          \
