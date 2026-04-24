@@ -8,11 +8,8 @@
 #include <stdbool.h>       // C语言布尔类型头文件
 #include <stdio.h>         // 标准输入输出头文件
 
-const uint8_t RESET_KEY = 0xFF; // 系统复位按键值，用于接收串口命令执行系统复位
 
 // 外部变量声明（在其他文件中定义，此处引用）
-extern float Target_Vertical_x, Target_Vertical_y; // 垂直方向目标坐标
-extern float target_x, target_y;                   // 通用目标坐标
 extern int8_t Questionx;                           // 当前题目编号（控制不同串口处理逻辑）
 extern bool Power_on_flag;                         // 系统上电启动标志位
 extern bool Start_flag;                            // 系统开始运行标志位
@@ -340,8 +337,6 @@ void Serial_ProcessRx(uint8_t com_data)
             if (Questionx == 2)
             {
                 Serial_SendPacket(0xA5, 0x5A, (uint8_t *)&Questionx, 1);
-                Target_Vertical_x = 0;
-                Target_Vertical_y = 0;
                 Emm_V5_Vel_Control(2, 0, search_speed_x, 0, 0); // X轴电机启动搜索
                 //Emm_V5_Vel_Control(2, 0, search_speed_y, 0, 0); // Y轴电机启动搜索
             }

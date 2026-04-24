@@ -32,14 +32,9 @@ static cmd_handler_PID_t cmd_Questionx[5] = {
     [BasicQuestion2] = handle_PID_BasicQuestion2,
     [BasicQuestion3] = handle_PID_BasicQuestion3,
     [AdvancedQuestion1] = handle_PID_AdvancedQuestion1,
-    [AdvancedQuestion2] = handle_PID_AdvancedQuestion2};
+    [AdvancedQuestion2] = handle_PID_AdvancedQuestion2
+};
 
-// 控制维度枚举：区分X轴/Y轴控制
-typedef enum
-{
-    x, // X轴控制
-    y  // Y轴控制
-} Dimension_t;
 
 // PID参数结构体：封装位置环PID的比例/积分/微分系数
 typedef struct parameter_pid
@@ -55,8 +50,6 @@ pid_t Position_PID_x;
 pid_t Position_PID_y;
 float Target_Vertical_x = 0;
 float Target_Vertical_y = 0;
-float target_x = 0;
-float target_y = 0;
 
 /**
  * @brief  PID参数初始化函数
@@ -100,6 +93,17 @@ void PID_Init(void)
         }                                                      \
     } while (0)
 
+void PID_SetTargetVertical(Dimension_t xy, float Target_Vertical_xy)
+{
+    if (xy == x)
+    {
+        Target_Vertical_x = Target_Vertical_xy;
+    }
+    else if (xy == y)
+    {
+        Target_Vertical_y = Target_Vertical_xy;
+    }
+}
 /**
  * @brief  主控制函数：视觉位置环+速度前馈总控
  * @param  now_x: 视觉识别的当前激光X坐标

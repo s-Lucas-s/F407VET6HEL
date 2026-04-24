@@ -14,7 +14,6 @@ typedef uint32_t u32;
 extern UART_HandleTypeDef huart2;
 
 // 外部变量
-extern const uint8_t RESET_KEY;// 定义一个全局变量，用于接收串口命令，控制系统重置
 extern float center_x, center_y; // 外部声明视觉解析的中心坐标
 
 

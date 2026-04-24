@@ -56,6 +56,8 @@ UART_HandleTypeDef huart6;
 bool Start_flag = 0;
 bool Power_on_flag = 0;
 int8_t Questionx = 0;
+const uint8_t RESET_KEY = 0xFF; // 系统复位按键值，用于接收串口命令执行系统复位
+
 GyroData_t s_GyroData = {0};
 
 /* USER CODE END PV */
