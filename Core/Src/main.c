@@ -59,7 +59,7 @@ bool Stop_flag = 0;
 bool Power_on_flag = 0; // 第二题的全局变量，用于控制系统是否上电，只有当它为1时才会处理串口数据
 int8_t Questionx = 0;
 float ROLL, YAW, PITCH;
-uint8_t SCAN = 1;
+uint8_t SCAN = 0;
 volatile uint8_t keyValue = 0;
 /* USER CODE END PV */
 
@@ -131,9 +131,15 @@ int main(void)
     __HAL_UART_ENABLE_IT(&huart1, UART_IT_RXNE);
     __HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);
     __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
+    __HAL_UART_ENABLE_IT(&huart6, UART_IT_RXNE);
     HAL_Delay(500);
     OLED_Clear();
     OLED_Update();
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
+
+    // 初始化上电时，强制让舵机回到默认的物理中心位置（400）
+    WritePosEx(1, 300, 90, 0);
+    // ==============================================================================
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -156,39 +162,39 @@ int main(void)
         //   jy901->fun->PITCH_GET(jy901); // 可选：读取俯仰角
         //   jy901->fun->YAW_GET(jy901);   // 可选：读取偏航角
 
-    keyValue = Key_GetCode();
+    keyValue = Key_GetCode();  
 
     if (keyValue == 1)
     {
-        Questionx++;
-        if (Questionx > 4)
-        {
-            Questionx = 1;
-        }
-        }
-        else if (keyValue == 2)
-        {
-            Stop_flag = !Stop_flag;
-        }
-        else if (keyValue == 3)
-        {
-            SCAN++;
-            if (SCAN > 2)
-            {
-                SCAN = 1;
-            }
-        }
+      Questionx++;
+      if (Questionx > 4)
+      {
+        Questionx = 1;
+      }
+    }
+    else if (keyValue == 2)
+    {
+      Stop_flag = !Stop_flag;
+    }
+    else if (keyValue == 3)
+    {
+      SCAN++;
+      if (SCAN > 2)
+      {
+        SCAN = 0;
+      }
+    }
 
-    Serial_Control_Task(); // 根据标志位自动选择 扫描 / PID，不依赖串口接收
+    Serial_Control_Task(); // 已改至 TIM2_IRQHandler 定时器中执行以保障丝滑
     OLED_ShowString(0, 0, "Stop:", OLED_8X16);
     OLED_ShowNum(48, 0, Stop_flag, 1, OLED_8X16);
     OLED_ShowString(0, 16, "Question:", OLED_8X16);
     OLED_ShowNum(72, 16, Questionx, 1, OLED_8X16);
-    OLED_ShowString(0, 32, "Y:", OLED_8X16);
-    OLED_ShowFloatNum(16, 32, err_y, 4, 2, OLED_8X16);
+    OLED_ShowString(0, 32, "SCAN:", OLED_8X16);
+    OLED_ShowNum(48, 32, SCAN, 1, OLED_8X16);
 
-    OLED_ShowString(0, 48, "Y:", OLED_8X16);
-    OLED_ShowFloatNum(16, 48, center_y, 4, 2, OLED_8X16);
+    OLED_ShowString(0, 48, "x:", OLED_8X16);
+    OLED_ShowFloatNum(16, 48, err_y, 4, 2, OLED_8X16);
     // OLED_ShowString(0, 0, "ROLL:", OLED_8X16);
     // OLED_ShowFloatNum(48, 0, jy901->var.roll, 1, 3, OLED_8X16);
     // OLED_ShowString(0, 16, "PITCH:", OLED_8X16);
@@ -476,11 +482,21 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(Laser_GPIO_Port, Laser_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : K1_Pin */
   GPIO_InitStruct.Pin = K1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(K1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : Laser_Pin */
+  GPIO_InitStruct.Pin = Laser_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(Laser_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : KEY2_Pin */
   GPIO_InitStruct.Pin = KEY2_Pin;
@@ -488,11 +504,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(KEY2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : KEY1_Pin */
-  GPIO_InitStruct.Pin = KEY1_Pin;
+  /*Configure GPIO pins : KEY1_Pin KEY3_Pin */
+  GPIO_InitStruct.Pin = KEY1_Pin|KEY3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(KEY1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -504,7 +520,6 @@ static void MX_GPIO_Init(void)
 float Check_angle(uint8_t addr)
 {
     float Check_pos = 0.0f, Check_Motor_Cur_Pos = 0.0f;
-
     Emm_V5_Read_Sys_Params(addr, S_CPOS);
     HAL_Delay(20);
     if (rxCmd[0] == addr && rxCmd[1] == 0x36 && rxCount == 8)

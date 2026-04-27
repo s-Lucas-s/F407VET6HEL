@@ -72,7 +72,31 @@ virtualFolder:
         - path: MDK-ARM/Hardware/Serial1.h
         - path: MDK-ARM/Hardware/usart.c
         - path: MDK-ARM/Hardware/usart.h
-      folders: []
+        - path: MDK-ARM/Hardware/StepMotor.c
+        - path: MDK-ARM/Hardware/StepMotor.h
+        - path: MDK-ARM/Hardware/Motor.c
+        - path: MDK-ARM/Hardware/Motor.h
+      folders:
+        - name: SCSLib
+          files: []
+          folders:
+            - name: inc
+              files:
+                - path: MDK-ARM/Hardware/SCSLib/inc/INST.h
+                - path: MDK-ARM/Hardware/SCSLib/inc/SCS.h
+                - path: MDK-ARM/Hardware/SCSLib/inc/SCServo.h
+                - path: MDK-ARM/Hardware/SCSLib/inc/SMS_STS.h
+                - path: MDK-ARM/Hardware/SCSLib/inc/uart.h
+              folders: []
+            - name: src
+              files:
+                - path: MDK-ARM/Hardware/SCSLib/src/SCS.c
+                - path: MDK-ARM/Hardware/SCSLib/src/SCServo.c
+                - path: MDK-ARM/Hardware/SCSLib/src/SMS_STS.c
+                - path: MDK-ARM/Hardware/SCSLib/src/uart.c
+              folders: []
+          srcs:
+            - MDK-ARM/Hardware/SCSLib/src
     - name: System
       files:
         - path: MDK-ARM/System/fifo.c
@@ -94,12 +118,14 @@ targets:
         - USE_HAL_DRIVER
         - STM32F407xx
       incList:
+        - .
         - Core/Inc
         - Drivers/STM32F4xx_HAL_Driver/Inc
         - Drivers/STM32F4xx_HAL_Driver/Inc/Legacy
         - Drivers/CMSIS/Device/ST/STM32F4xx/Include
         - Drivers/CMSIS/Include
         - MDK-ARM/Hardware
+        - MDK-ARM/Hardware/SCSLib/inc
         - MDK-ARM/System
         - .cmsis/include
         - MDK-ARM/RTE/_F407VET6HEL

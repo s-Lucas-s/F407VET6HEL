@@ -81,7 +81,7 @@
           </BeforeMake>
           <AfterMake>
             <RunUserProg1>0</RunUserProg1>
-            <RunUserProg2>0</RunUserProg2>
+            <RunUserProg2>1</RunUserProg2>
             <UserProg1Name></UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;./Hardware;./System</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;./Hardware;./System;./SCSLib</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -735,6 +735,56 @@
               <FileName>sys.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\System\sys.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>SCSLib</GroupName>
+          <Files>
+            <File>
+              <FileName>INST.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\SCSLib\INST.h</FilePath>
+            </File>
+            <File>
+              <FileName>SCS.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SCSLib\SCS.c</FilePath>
+            </File>
+            <File>
+              <FileName>SCS.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\SCSLib\SCS.h</FilePath>
+            </File>
+            <File>
+              <FileName>SCServo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SCSLib\SCServo.c</FilePath>
+            </File>
+            <File>
+              <FileName>SCServo.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\SCSLib\SCServo.h</FilePath>
+            </File>
+            <File>
+              <FileName>SMS_STS.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SCSLib\SMS_STS.c</FilePath>
+            </File>
+            <File>
+              <FileName>SMS_STS.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\SCSLib\SMS_STS.h</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SCSLib\uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\SCSLib\uart.h</FilePath>
             </File>
           </Files>
         </Group>

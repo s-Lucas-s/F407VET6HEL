@@ -4,6 +4,8 @@
 #include "main.h"
 #include <stdint.h>
 #include <stdbool.h>
+#define LASER_ON() HAL_GPIO_WritePin(Laser_GPIO_Port, Laser_Pin, GPIO_PIN_SET)
+#define LASER_OFF() HAL_GPIO_WritePin(Laser_GPIO_Port, Laser_Pin, GPIO_PIN_RESET)
 
 // 类型定义
 typedef uint8_t u8;

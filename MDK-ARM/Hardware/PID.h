@@ -10,12 +10,20 @@ typedef struct
     float y; // 纵坐标
 } Point2D;
 
-extern float target_x;          // X轴目标坐标
-extern float target_y;          // Y轴目标坐标
+typedef struct parameter_pid
+{
+    float kp;
+    float ki;
+    float kd;
+} pid_t;
+
+extern pid_t PID_Pool_X[4];
+extern pid_t PID_Pool_Y[4];
+
 extern float err_x;
 extern float err_y;
 
 void PID_Init(void);
-void PID_Control(float now_x, float now_y);
+void PID_Control(float in_target_x, float in_target_y);
 
 #endif

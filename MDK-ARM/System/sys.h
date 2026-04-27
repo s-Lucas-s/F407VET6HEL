@@ -11,6 +11,10 @@
 #include "Serial1.h"
 #include "Key.h"
 #include "IAP.h"
+#include <string.h>
+#include "INST.h"
+#include "SCS.h"
+#include "SMS_STS.h"
 
 /* ————————————变量———————————— */
 extern bool Stop_flag;

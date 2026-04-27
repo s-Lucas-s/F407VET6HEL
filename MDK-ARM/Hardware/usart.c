@@ -30,20 +30,14 @@ void usart_SendByte(UART_HandleTypeDef *huart, uint16_t data)
  */
 void usart_SendCmd(uint8_t *cmd, uint8_t len)
 {
-    uint8_t i = 0;
-
     if (cmd[0] == 1)
     {
-        for (i = 0; i < len; i++)
-        {
-            usart_SendByte(&huart1, cmd[i]);
-        }
+        // 关键修复：不要用单字节循环发，容易被中断打断导致丢包或帧断裂
+        // 地址为1时（步进），直接用HAL整包发送，给串口6
+        HAL_UART_Transmit(&huart6, cmd, len, 100);
     }
     else if (cmd[0] == 2)
     {
-        for (i = 0; i < len; i++)
-        {
-            usart_SendByte(&huart6, cmd[i]);
-        }
+        HAL_UART_Transmit(&huart1, cmd, len, 100);
     }
 }

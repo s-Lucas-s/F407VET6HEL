@@ -33,9 +33,9 @@ unsigned char Key_Get(void)
     {
         CurrentKey = 2;  // KEY2按下
     }
-    if (HAL_GPIO_ReadPin(K1_GPIO_Port, K1_Pin) == GPIO_PIN_RESET)
+    if (HAL_GPIO_ReadPin(KEY3_GPIO_Port, KEY3_Pin) == GPIO_PIN_RESET)
     {
-        CurrentKey = 3;  // K1按下
+        CurrentKey = 3;  // KEY3按下
     }
     
     return CurrentKey;
@@ -66,7 +66,7 @@ void Key_LoopDetect(void)
     }
     else if (LastState == 3 && NowState == 0)
     {
-        Key_Code = 3;  // K1松手
+        Key_Code = 3;  // KEY3松手
     }
 
     // 更新上一状态

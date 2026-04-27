@@ -7,19 +7,16 @@
 #include "stm32f4xx_hal.h"
 #include <math.h>
 #include "Emm_V5.h"
+#include "SMS_STS.h"
 
 uint8_t rx_data; // 接收数据缓冲区
 
 const uint8_t RESET_KEY = 0xFF; // 定义一个全局变量，用于接收串口命令，控制系统重置
 
 // 外部变量声明
-extern float  target_x, target_y;
 extern int8_t Questionx;
 extern bool Power_on_flag, Stop_flag;
-
-// 激光固定坐标（和PID保持一致）
-#define LASER_FIX_X 160.0f
-#define LASER_FIX_Y 120.0f
+extern float center_x, center_y; // 外部声明视觉解析的中心坐标
 
 // 2cm对应的像素误差阈值
 #define ERR_X_MAX 5.0f
@@ -35,16 +32,15 @@ float center_x, center_y; // 解析后的中心坐标
 
 // ====================== 激光控制核心变量=========================
 uint8_t laser_locked = 0; // 激光锁死标志：0=关 1=开（永不关闭）
-#define LASER_ON() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET)
-#define LASER_OFF() HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET)
+
 
 // ===================== 扫描模式变量（全部放在Serial内部）=====================
 extern uint8_t SCAN;             // 1=顺时针扫描  2=逆时针扫描
-uint8_t Scan_Mode_Flag = 1;      // 模式标志位：0=PID跟踪模式  1=扫描寻靶模式（收到数据自动变0）
-const uint16_t SCAN_SPEED = 500; // 扫描速度
+static uint8_t Scan_Mode_Flag = 1;      // 模式标志位：0=PID跟踪模式  1=扫描寻靶模式（收到数据自动变0）
+const uint16_t SCAN_SPEED = 5; // 扫描速度
 
 // 记录最后一次收到有效数据包的时间
-uint32_t Last_Valid_Rx_Time = 0;
+static uint32_t Last_Valid_Rx_Time = 0;
 
 // 函数指针类型定义：用于串口命令处理函数的跳转表
 typedef void (*cmd_handler_USART_t)(void);
@@ -55,16 +51,22 @@ void Serial_Scan_Mode(void)
 {
     if (SCAN == 1)
     {
-        // X轴顺时针旋转(方向1，速度SCAN_SPEED)
-        Emm_V5_Vel_Control(1, 1, SCAN_SPEED, 0, 0);
+        // X轴顺时针旋转
+        Emm_V5_Vel_Control(1, 1, SCAN_SPEED, 0, 0); 
     }
     else if (SCAN == 2)
     {
-        // X轴逆时针旋转(方向0，速度SCAN_SPEED)
-        Emm_V5_Vel_Control(1, 0, SCAN_SPEED, 0, 0);
+        // X轴逆时针旋转
+        Emm_V5_Vel_Control(1, 0, SCAN_SPEED, 0, 0); 
     }
-    // Y轴电机保持停止（不晃动）
-    Emm_V5_Vel_Control(2, 0, 0, 0, 0);
+    else if (SCAN == 0)
+    {
+        // 保证X轴也不转
+        PID_Control(center_x, center_y);  
+    }
+    
+    // Y轴(舵机)保持停止——舵机如果接收位置包可以不发送
+    // servo1 可以什么都不做，它本来就锁定在中位或者上一位置
 }
 
 // ===================== 系统控制与模式判断轮询任务 =====================
@@ -75,8 +77,8 @@ void Serial_Control_Task(void)
     if (Stop_flag == 0 || Power_on_flag == 0)
     {
         // 保持两个电机静止，不执行任何业务逻辑
-        Emm_V5_Vel_Control(1, 0, 0, 0, 0);
-        Emm_V5_Vel_Control(2, 0, 0, 0, 0);
+        Emm_V5_Stop_Now(1, 0);
+        // 对于舵机保持静止可保持最后接收到的位置
 
         // 持续刷新最后接收时间
         // 防止启动瞬间系统由于经过了300ms直接判定为超时，导致一开始就疯狂进入扫描模式乱转
@@ -87,20 +89,20 @@ void Serial_Control_Task(void)
 
     // 如果超过 300ms 没有收到有效的视觉数据包，自动切换回扫描模式
     // 因为这里是在主循环 while(1) 中不断轮询，所以即使在没接线、串口中断不触发的情况下也能有效判断超时！
-    // if (HAL_GetTick() - Last_Valid_Rx_Time > 300)
+    // if (HAL_GetTick() - Last_Valid_Rx_Time > 300) 
     // {
     //     Scan_Mode_Flag = 1;
     // }
 
-    if (Scan_Mode_Flag == 1)
+    if (Scan_Mode_Flag == 1 && SCAN != 0)
     {
         // 无有效数据包 → 执行扫描
         Serial_Scan_Mode();
     }
     else
     {
-        // 收到有效数据包 → 执行PID跟踪，直接传入float即可，无需强转
-        PID_Control(center_x, center_y);
+        // 收到有效数据包 → 执行PID跟踪，直接传入浮点误差中心即可
+        PID_Control(center_x, center_y); 
     }
 }
 
@@ -157,8 +159,8 @@ void handle_USART_BasicQuestion1(void)
             {
                 static uint8_t stable_cnt = 0;
                 // 计算误差：靶心 → 激光固定点
-                float err_x = fabsf(LASER_FIX_X - center_x);
-                float err_y = fabsf(LASER_FIX_Y - center_y);
+                float err_x = fabsf(center_x);
+                float err_y = fabsf(center_y);
 
                 // 连续10帧稳定(≈150ms) → 开光锁死
                 if (err_x < ERR_X_MAX && err_y < ERR_Y_MAX)
@@ -167,7 +169,7 @@ void handle_USART_BasicQuestion1(void)
                     if (stable_cnt >= 10)
                     {
                         laser_locked = 1;
-                        LASER_ON(); // 激光打开，永不关闭
+                        LASER_ON(); // 激光打开，永不关闭 (通过硬件复位清零)
                     }
                 }
                 else
