@@ -90,8 +90,8 @@ int32_t Position_PID_Control(Dimension_t Dimension, float err, uint32_t dt)
 void PID_Init(void)
 {
     // ====== 第一、二题（静态/基础打靶）：快、准、不超调 ======
-    PID_Pool_X[0].kp = -0.08f; PID_Pool_X[0].ki = 0.0f; PID_Pool_X[0].kd = 0.0f;
-    PID_Pool_Y[0].kp = 0.4f; PID_Pool_Y[0].ki = 0.0f; PID_Pool_Y[0].kd = 0.0f;
+    PID_Pool_X[0].kp = 0.0f; PID_Pool_X[0].ki = 0.0f; PID_Pool_X[0].kd = 0.0f;
+    PID_Pool_Y[0].kp = 0.01f; PID_Pool_Y[0].ki = 0.0f; PID_Pool_Y[0].kd = 0.0f;
     
     // 第2题同理...
     PID_Pool_X[1] = PID_Pool_X[0]; 

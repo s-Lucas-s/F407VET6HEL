@@ -211,11 +211,12 @@ void TIM2_IRQHandler(void)
   /* USER CODE BEGIN TIM2_IRQn 0 */
     static uint16_t Key_LoopTime = 0;
     Key_LoopTime++;
+    
     if (Key_LoopTime >= 10) // 100Hz
     {
+       Serial_Control_Task(); // 已改至 TIM2_IRQHandler 定时器中执行以保障丝滑
         Key_LoopTime = 0;
-        Key_LoopDetect();
-        
+        Key_LoopDetect();       
 	  }
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);

@@ -185,7 +185,7 @@ int main(void)
       }
     }
 
-    Serial_Control_Task(); // 已改至 TIM2_IRQHandler 定时器中执行以保障丝滑
+
     OLED_ShowString(0, 0, "Stop:", OLED_8X16);
     OLED_ShowNum(48, 0, Stop_flag, 1, OLED_8X16);
     OLED_ShowString(0, 16, "Question:", OLED_8X16);
